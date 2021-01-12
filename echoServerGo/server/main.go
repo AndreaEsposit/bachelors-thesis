@@ -12,7 +12,7 @@ import (
 
 func main() {
 	server := NewEchoServer()
-	lis, err := net.Listen("tcp", ":"+server.port)
+	lis, err := net.Listen("tcp", server.port)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +34,7 @@ type EchoServer struct {
 
 func NewEchoServer() *EchoServer {
 	return &EchoServer{
-		port: "8070",
+		port: "[::1]:50051",
 	}
 }
 
