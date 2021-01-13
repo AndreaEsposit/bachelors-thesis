@@ -13,22 +13,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = EchoClient::connect("http://[::1]:50051").await?;
 
     //let args: Vec<String> = env::args().collect();
+    println!("Exit/exit' to exit this program ");
+    loop {
+        print!("What are you thinking? ");
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
 
-    print!("What are you thinking? ");
-    io::stdout().flush().unwrap();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
+        // read_line leaves a trailing newline, which trim will remove
+        let command = input.trim();
 
-    // read_line leaves a trailing newline, which trim will remove
-    let command = input.trim();
+        if command == " " {
+            continue;
+        } else if command == "exit" || command == "Exit" {
+            break;
+        }
 
-    let request = tonic::Request::new(Message {
-        content: command.as_bytes().into(),
-    });
+        let request = tonic::Request::new(Message {
+            content: command.as_bytes().into(),
+        });
 
-    let response = client.send(request).await?;
+        let response = client.send(request).await?;
 
-    println!("RESPONSE={:?}", response);
-
+        println!("RESPONSE={:?}", response);
+    }
     Ok(())
 }

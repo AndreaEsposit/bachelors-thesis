@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	pb "github.com/AndreaEsposit/practice/echoServerGo/proto"
 	"google.golang.org/grpc"
@@ -19,16 +22,21 @@ func main() {
 	client := pb.NewEchoClient(conn)
 
 	for {
-		fmt.Print("What are you thinking?")
-		var answer string
-		fmt.Scanln(&answer)
+		reader := bufio.NewReader(os.Stdout)
+		fmt.Println("Exit/exit' to exit this program")
+		fmt.Print("What are you thinking? ")
+		text, _ := reader.ReadString('\n')
 
-		if answer == "" {
+		text = strings.Replace(text, "\n", "", -1)
+
+		if text == "" {
 			continue
+		} else if text == "exit" || text == "Exit" {
+			break
 		}
 
 		message := &pb.Message{
-			Content: []byte(answer),
+			Content: []byte(text),
 		}
 
 		returnMessage, err := client.Send(context.Background(), message)
