@@ -2,24 +2,25 @@ package main
 
 import (
 	"fmt"
+	"time"
 
-	wasm "github.com/wasmerio/go-ext-wasm/wasmer"
+	"github.com/bytecodealliance/wasmtime-go"
 )
 
 func main() {
+	now := time.Now()
+	defer func() {
+		fmt.Println(time.Since(now))
+	}()
 
-	bytes, _ := wasm.ReadBytes("wasm_test.wasm")
+	engine := wasmtime.NewEngine()
+	store := wasmtime.NewStore(engine)
+	module, _ := wasmtime.NewModuleFromFile(engine, "wasm_test.wasm")
 
-	// Instantiates the WebAssembly module.
-	instance, _ := wasm.NewInstance(bytes)
-	defer instance.Close()
+	instance, _ := wasmtime.NewInstance(store, module, []*wasmtime.Extern{})
 
-	// Gets the `age` exported function from the WebAssembly instance.
-	age := instance.Exports["age"]
-
-	// Calls that exported function with Go standard values. The WebAssembly
-	// types are inferred and values are casted automatically.
-	result, _ := age(2021, 1998)
+	age := instance.GetExport("age").Func()
+	result, _ := age.Call(2021, 1998)
 
 	fmt.Printf("You are: %v years old \n", result)
 }
