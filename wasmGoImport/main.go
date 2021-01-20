@@ -2,25 +2,55 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/bytecodealliance/wasmtime-go"
 )
 
 func main() {
-	now := time.Now()
-	defer func() {
-		fmt.Println(time.Since(now))
-	}()
+	dir, err := ioutil.TempDir("", "out")
+	check(err)
+	defer os.RemoveAll(dir)
+	stdoutPath := filepath.Join(dir, "stdout")
 
 	engine := wasmtime.NewEngine()
 	store := wasmtime.NewStore(engine)
-	module, _ := wasmtime.NewModuleFromFile(engine, "wasm_test.wasm")
 
-	instance, _ := wasmtime.NewInstance(store, module, []*wasmtime.Extern{})
+	linker := wasmtime.NewLinker(store)
 
-	age := instance.GetExport("age").Func()
-	result, _ := age.Call(2021, 1998)
+	// Configure WASI imports to write stdout into a file.
+	wasiConfig := wasmtime.NewWasiConfig()
+	wasiConfig.SetStdoutFile(stdoutPath)
 
-	fmt.Printf("You are: %v years old \n", result)
+	// Set the version to the same as in the WAT.
+	wasi, err := wasmtime.NewWasiInstance(store, wasiConfig, "wasi_snapshot_preview1")
+	check(err)
+
+	// Link WASI
+	err = linker.DefineWasi(wasi)
+	check(err)
+
+	// Create our module
+	module, err := wasmtime.NewModuleFromFile(store.Engine, "wasi.wasm")
+	check(err)
+	instance, err := linker.Instantiate(module)
+	check(err)
+
+	// Run the function
+	nom := instance.GetExport("print_hello").Func()
+	_, err = nom.Call()
+	check(err)
+
+	// Print WASM stdout
+	out, err := ioutil.ReadFile(stdoutPath)
+	check(err)
+	fmt.Print(string(out))
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
