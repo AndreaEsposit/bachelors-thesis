@@ -1,0 +1,16 @@
+//  protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:.  echo.proto
+//  python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. echo.proto
+
+syntax = "proto3";
+
+package proto;
+
+option go_package="echo_bachelor_example/proto";
+
+message Message {
+    string content = 1;
+}
+
+service Echo{
+    rpc Send(Message) returns(Message);
+}

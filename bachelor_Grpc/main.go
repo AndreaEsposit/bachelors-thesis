@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -49,6 +51,13 @@ func main() {
 	size1 := int32(len([]byte("Andrea")))
 	size2 := int32(len([]byte{1, 2, 5}))
 
+	strs := []string{"foo", "bar"}
+	buffa := &bytes.Buffer{}
+	gob.NewEncoder(buffa).Encode(strs)
+	bs := buffa.Bytes()
+
+	size3 := int32(len(bs))
+
 	// //Allocate memomory
 	ptr1, err := alloc.Call(size1)
 	check(err)
@@ -56,6 +65,9 @@ func main() {
 
 	pt2, err := alloc.Call(size2)
 	pointe2, _ := pt2.(int32)
+
+	ptr3, err := alloc.Call(size3)
+	pointer3, _ := ptr3.(int32)
 
 	//fmt.Printf("New size: %v\n", memory.Size())
 	//fmt.Printf("New datasize: %v\n", memory.DataSize())
@@ -65,18 +77,24 @@ func main() {
 		buf[pointer+int32(i)] = v
 	}
 
-	//use string func
+	// Use string func
 	_, err = fn.Call(pointer, size1)
 	check(err)
 
+	// Allocate array on memory
 	for i, v := range []byte{1, 2, 5} {
 		buf[pointe2+int32(i)] = v
 	}
 
 	// Call array_sum
 	sum, err := addVec.Call(pointe2, size2)
-
 	fmt.Printf("The sum is: %d\n", sum)
+
+	// Allocate array of string on memory
+	for i, v := range bs {
+		buf[pointer3+int32(i)] = v
+	}
+	_, err = addVec.Call(pointe2, size2)
 
 	// Print WASM stdout
 	out, err := ioutil.ReadFile(stdoutPath)
