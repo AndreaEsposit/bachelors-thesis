@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	// Stdout to print WASI text
+	// stdout to print WASI text
 	dir, err := ioutil.TempDir("", "out")
 	check(err)
 	defer os.RemoveAll(dir)
@@ -24,31 +24,35 @@ func main() {
 
 	engine := wasmtime.NewEngine()
 	store := wasmtime.NewStore(engine)
-
 	linker := wasmtime.NewLinker(store)
 
-	// Configure WASI imports to write stdout into a file.
+	// configure WASI imports to write stdout into a file.
 	wasiConfig := wasmtime.NewWasiConfig()
 	wasiConfig.SetStdoutFile(stdoutPath)
 
-	// Set the version to the same as in the WAT.
+	// set the version to the same as in the WAT.
 	wasi, err := wasmtime.NewWasiInstance(store, wasiConfig, "wasi_snapshot_preview1")
 	check(err)
 
-	// Link WASI
+	// link WASI
 	err = linker.DefineWasi(wasi)
 	check(err)
 
-	// Create our module
+	// create the WebAssembly-module
 	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm/echo_server.wasm")
 	check(err)
 	instance, err := linker.Instantiate(module)
 	check(err)
 
-	// --------------------------------------------------------------
-
-	// Initialize the grpc server
-	server := NewEchoServer(instance, stdoutPath)
+	// export functions and memory from the WebAssembly module
+	funcs := make(map[string]*wasmtime.Func)
+	funcs["alloc"] = instance.GetExport("my_alloc").Func()
+	funcs["dealloc"] = instance.GetExport("my_dealloc").Func()
+	funcs["echo"] = instance.GetExport("echo").Func()
+	mem := instance.GetExport("memory").Memory()
+	// -------------------------------------------------------------------------
+	// initialize the grpc server
+	server := NewEchoServer(funcs, mem, stdoutPath)
 	lis, err := net.Listen("tcp", server.port)
 	if err != nil {
 		log.Fatal(err)
@@ -64,51 +68,51 @@ func main() {
 	}
 }
 
+// EchoServer struct facilitates the managment of the server
 type EchoServer struct {
-	port     string
-	stdout   string
-	instance *wasmtime.Instance
-	mu       sync.Mutex
+	port   string
+	stdout string
+	memory *wasmtime.Memory
+	funcs  map[string]*wasmtime.Func
+	mu     sync.Mutex
 	pb.UnimplementedEchoServer
 }
 
-func NewEchoServer(instance *wasmtime.Instance, stdout string) *EchoServer {
+// NewEchoServer initializes an EchoServer
+func NewEchoServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, stdout string) *EchoServer {
 	return &EchoServer{
-		port:     "localhost:50051", //[::1]:50051
-		instance: instance,
-		stdout:   stdout,
+		funcs:  funcs,
+		memory: memory,
+		stdout: stdout,
+		port:   "localhost:50051",
 	}
 }
 
-func (echo *EchoServer) Send(ctx context.Context, message *pb.Message) (*pb.Message, error) {
-	echo.mu.Lock()
-	defer echo.mu.Unlock()
-	mem := echo.instance.GetExport("memory").Memory()
-	alloc := echo.instance.GetExport("my_alloc").Func()
-	deAlloc := echo.instance.GetExport("my_dealloc").Func()
-	fn := echo.instance.GetExport("echo").Func()
+// Send is the function called by the clients
+func (server *EchoServer) Send(ctx context.Context, message *pb.Message) (*pb.Message, error) {
+	server.mu.Lock()
+	defer server.mu.Unlock()
 
-	fmt.Printf("Server recived: '%v'\n", string(message.Content))
+	fmt.Printf("Server recived: '%v'\n", message.Content)
 
-	ptr := copyMemory([]byte(message.Content), alloc, mem)
+	ptr := server.copyMemory([]byte(message.Content))
 
-	newPtr, err := fn.Call(ptr, int32(len(message.Content)))
+	newPtr, err := server.funcs["echo"].Call(ptr, int32(len(message.Content)))
 	check(err)
-	pointer := newPtr.(int32)
+	newPtr32 := newPtr.(int32)
 
-	// Copy the bytes to a new buffer
-	buf := mem.UnsafeData()
+	// copy the bytes to a new buffer
+	buf := server.memory.UnsafeData()
 	newContent := make([]byte, len(message.Content))
 	for i := range newContent {
-		newContent[i] = buf[pointer+int32(i)]
+		newContent[i] = buf[newPtr32+int32(i)]
 	}
 
-	returnMessage := pb.Message{
-		Content: string(newContent),
-	}
+	// make new message
+	returnMessage := pb.Message{Content: string(newContent)}
 
 	// Deallocate memory in wasm
-	_, err = deAlloc.Call(pointer, int32(len(message.Content)))
+	_, err = server.funcs["dealloc"].Call(newPtr32, int32(len(message.Content)))
 
 	// Print WASM stdout
 	// out, err := ioutil.ReadFile(echo.stdout)
@@ -124,20 +128,20 @@ func check(err error) {
 	}
 }
 
-func copyMemory(data []byte, alloc *wasmtime.Func, mem *wasmtime.Memory) int32 {
-	// find size of data
-	size := int32(len(data))
+func (server *EchoServer) copyMemory(data []byte) int32 {
 
 	// allocate memory in wasm
-	ptr, err := alloc.Call(size)
+	ptr, err := server.funcs["alloc"].Call(int32(len(data)))
 	check(err)
 
-	pointer := ptr.(int32)
+	// casting pointer to int32
+	ptr32 := ptr.(int32)
 
-	buf := mem.UnsafeData()
+	// return raw memory backed by the WebAssembly memory as a byte slice
+	buf := server.memory.UnsafeData()
 	for i, v := range data {
-		buf[pointer+int32(i)] = v
+		buf[ptr32+int32(i)] = v
 	}
 	// return the pointer
-	return pointer
+	return ptr32
 }
