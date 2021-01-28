@@ -97,22 +97,22 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 
 	fmt.Printf("Server recived: '%v'\n", message.Content)
 
-	bytesMessage, err := proto.Marshal(message)
+	recivedBytes, err := proto.Marshal(message)
 	check(err)
 
-	ptr := server.copyMemory(bytesMessage)
+	ptr := server.copyMemory(recivedBytes)
 
-	newPtr, err := server.funcs["echo"].Call(ptr, int32(len(bytesMessage)))
+	newPtr, err := server.funcs["echo"].Call(ptr, int32(len(recivedBytes)))
 	check(err)
 	newPtr32 := newPtr.(int32)
 
-	newLen, err := server.funcs["get_len"].Call()
+	nml, err := server.funcs["get_len"].Call()
 	check(err)
-	newL := newLen.(int32)
+	newMessageLen := nml.(int32)
 
 	// copy the bytes to a new buffer
 	buf := server.memory.UnsafeData()
-	newContent := make([]byte, newL)
+	newContent := make([]byte, newMessageLen)
 	for i := range newContent {
 		newContent[i] = buf[newPtr32+int32(i)]
 	}
@@ -124,8 +124,8 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 	}
 
 	// Deallocate memory in wasm
-	_, err = server.funcs["dealloc"].Call(ptr, int32(len(bytesMessage)))
-	_, err = server.funcs["dealloc"].Call(newPtr32, newLen)
+	_, err = server.funcs["dealloc"].Call(ptr, int32(len(recivedBytes)))
+	_, err = server.funcs["dealloc"].Call(newPtr32, newMessageLen)
 
 	// Print WASM stdout
 	// out, err := ioutil.ReadFile(echo.stdout)
