@@ -1,0 +1,5 @@
+From echo_bachelor_example/
+
+    ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 1000000 -d '{"content":"Random string"}' localhost:50051
+
+    ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 2 -n 1000 -d '{"content":"Random string"}' localhost:50051
