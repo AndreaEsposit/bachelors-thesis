@@ -34,15 +34,16 @@ type EchoServer struct {
 
 func NewEchoServer() *EchoServer {
 	return &EchoServer{
-		port: "[::1]:50051",
+		port: "localhost:50051",
 	}
 }
 
 func (echo *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*pb.EchoMessage, error) {
 
 	fmt.Printf("Server recived: %v\n", message.Content)
-	fmt.Println("Sending back")
 
-	return message, nil
+	newMessage := &pb.EchoMessage{Content: message.Content}
+
+	return newMessage, nil
 
 }

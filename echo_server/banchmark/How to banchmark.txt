@@ -1,0 +1,5 @@
+From echo_server folder
+
+Test1:  ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 100000 -d '{"content":"Random string"}' -o 'html' localhost:50051
+
+Test2:  ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 500000 -d '{"content":"Random string"}' -o 'html' localhost:50051
