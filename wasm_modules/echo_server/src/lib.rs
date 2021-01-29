@@ -45,7 +45,7 @@ pub extern "C" fn echo(ptr: *mut u8, length: usize) -> *mut u8 {
         MESSAGE_LEN = new_bytes.len() as i32;
     }
     let new_ptr = new_bytes.as_mut_ptr();
-    // take ownership of the memory block where the result string is written and esure its
+    // take ownership of the memory block where the new message is written and esure its
     // destryctuion is not called when the object goes out of scope at the end of the func
     std::mem::forget(new_bytes);
     new_ptr
