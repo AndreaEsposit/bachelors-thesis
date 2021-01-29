@@ -21,7 +21,7 @@ pub unsafe fn new_dealloc(ptr: *mut u8, length: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn get() -> i32 {
+pub extern "C" fn get_message_len() -> i32 {
     unsafe { MESSAGE_LEN }
 }
 

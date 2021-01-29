@@ -50,7 +50,7 @@ func main() {
 	funcs["alloc"] = instance.GetExport("new_alloc").Func()
 	funcs["dealloc"] = instance.GetExport("new_dealloc").Func()
 	funcs["echo"] = instance.GetExport("echo").Func()
-	funcs["get_len"] = instance.GetExport("get").Func()
+	funcs["get_len"] = instance.GetExport("get_message_len").Func()
 	mem := instance.GetExport("memory").Memory()
 	// -------------------------------------------------------------------------
 	// initialize the grpc server
