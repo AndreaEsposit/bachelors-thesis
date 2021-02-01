@@ -1,8 +1,8 @@
 From echo_server folder (in this format you get Html, and then from the html you can download the csv and json files)   
 
-        ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 100000 -d '{"content":"Random string"}' -o 'Wasm100000().html' -O 'html' localhost:50051
+        ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 100000 -d '{"content":"Random string"}' -o 'Wasm100000().html' -O 'html' 152.94.1.100:50051
 
-        ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 500000 -d '{"content":"Random string"}' -o 'Wasm500000().html' -O 'html' localhost:50051
+        ghz --insecure --proto ./proto/echo.proto --call proto.Echo.Send -c 1 -n 500000 -d '{"content":"Random string"}' -o 'Wasm500000().html' -O 'html' 152.94.1.100:50051
 
 
 
