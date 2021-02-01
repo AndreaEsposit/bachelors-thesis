@@ -5,7 +5,7 @@ import echo_pb2
 import echo_pb2_grpc
 
 # open gRPC channel
-channel = grpc.insecure_channel("152.94.1.100:50051")
+channel = grpc.insecure_channel("localhost:50051")  # pitt1 152.94.1.100:50051
 
 # create a stub (client)
 stub = echo_pb2_grpc.EchoStub(channel)
