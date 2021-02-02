@@ -1,0 +1,28 @@
+// protoc -I=$(go list -m -f {{.Dir}} github.com/relab/gorums):. --go_out=paths=source_relative:. --gorums_out=paths=source_relative:. storage.proto
+syntax = "proto3";
+
+package proto;
+
+option go_package = "storage_server/proto";
+
+import "gorums.proto";
+
+service Storage {
+  rpc Read(ReadRequest) returns (State) {
+    option (gorums.ordered) = true;
+  }
+  rpc Write(State) returns (WriteResponse) {
+    option (gorums.ordered) = true;
+  }
+}
+
+message State {
+  string Value = 1;
+  int64 Timestamp = 2;
+}
+
+message WriteResponse {
+  bool New = 1;
+}
+
+message ReadRequest {}
