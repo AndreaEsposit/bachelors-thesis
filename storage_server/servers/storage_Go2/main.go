@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 	"sync"
 
 	pb "github.com/AndreaEsposit/practice/storage_server/proto"
 )
 
 func main() {
-	ExampleStorageServer(8080)
+	ExampleStorageServer(8081)
 }
 
 func ExampleStorageServer(port int) {
@@ -44,12 +43,6 @@ func (srv *storageSrv) Write(_ context.Context, req *pb.State, ret func(*pb.Writ
 	if srv.state.Timestamp < req.Timestamp {
 		srv.state = req
 		fmt.Println("Got Write(", req.Value, ")")
-		f, err := os.Create("storage_1.txt")
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = f.WriteString(req.Value)
-
 		ret(&pb.WriteResponse{New: true}, nil)
 		return
 	}
