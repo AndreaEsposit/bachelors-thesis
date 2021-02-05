@@ -34,7 +34,7 @@ type EchoServer struct {
 
 func NewEchoServer() *EchoServer {
 	return &EchoServer{
-		port: "localhost:50051",
+		port: "152.94.1.102:50051", // 152.94.1.102, Pitter 3 ip address
 	}
 }
 
