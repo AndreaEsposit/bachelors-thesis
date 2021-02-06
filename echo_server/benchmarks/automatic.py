@@ -83,8 +83,8 @@ def getUsefulData():
 
 
 def main():
-    runAllBenchMarks(10, 1, 100000, os.path.basename(
-        THIS_FOLDER), "localhost:50051")
+    runAllBenchMarks(10, 1, 200, os.path.basename(
+        THIS_FOLDER), "152.94.1.102:50051")
     getUsefulData()
 
 
