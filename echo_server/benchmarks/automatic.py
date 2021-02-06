@@ -20,12 +20,13 @@ def run(cmd):
     p.wait()
 
 
-def runAllBenchMarks(number: int, clients: int, messages: int, benchmarksName: str, port: str):
-    for i in range(number):
+def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages: int, benchmarks_name: str, port: str):
+    for i in range(number_of_benchmarks):
         run(["ghz", "--insecure", "--proto", R_PROTO, "--call",
-             "proto.Echo.Send", "-c", str(clients), "-n", str(messages),
+             "proto.Echo.Send", "-c", str(
+                 clients), "-n", str(number_of_messages),
              "-d", "{\"content\":\"Random string\"}", "-o",
-             "(" + str(i+1) + ")" + benchmarksName + str(messages) + ".json", "-O", "pretty", port])
+             "(" + str(i+1) + ")" + benchmarks_name + str(number_of_messages) + ".json", "-O", "pretty", port])
         sleep(0.05)  # Sleep 50 ms
 
 
@@ -82,7 +83,8 @@ def getUsefulData():
 
 
 def main():
-    runAllBenchMarks(3, 1, 200, "Wasm", "localhost:50051")
+    runAllBenchMarks(10, 1, 100000, os.path.basename(
+        THIS_FOLDER), "localhost:50051")
     getUsefulData()
 
 
