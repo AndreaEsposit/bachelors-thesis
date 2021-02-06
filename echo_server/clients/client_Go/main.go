@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial("152.94.1.100:50051", grpc.WithInsecure())
 	check(err)
 
 	client := pb.NewEchoClient(conn)
