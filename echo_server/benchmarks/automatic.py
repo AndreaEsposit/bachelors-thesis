@@ -13,8 +13,8 @@ from time import sleep
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 # RELATIVE_PROTOFILE_POSITION
 R_PROTO = "../../proto/echo.proto"
-
 GHZ = "../../../../ghz/cmd/ghz/ghz"
+
 
 def run(cmd):
     p = subprocess.Popen(cmd)
@@ -83,10 +83,19 @@ def getUsefulData():
         json.dump(new_data, outfile, indent=3, sort_keys=True)
 
 
+def cleanUp(name: str):
+    obj = os.scandir(THIS_FOLDER)
+    for entry in obj:
+        if name in entry.name:
+            os.remove(entry.name)
+
+
 def main():
     runAllBenchMarks(10, 1, 200, os.path.basename(
         THIS_FOLDER), "152.94.1.102:50051")
     getUsefulData()
+    cleanUp(os.path.basename(
+        THIS_FOLDER))
 
 
 if __name__ == "__main__":
