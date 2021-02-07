@@ -14,6 +14,7 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 # RELATIVE_PROTOFILE_POSITION
 R_PROTO = "../../proto/echo.proto"
 
+GHZ = "../../../../ghz/cmd/ghz/ghz"
 
 def run(cmd):
     p = subprocess.Popen(cmd)
@@ -22,7 +23,7 @@ def run(cmd):
 
 def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages: int, benchmarks_name: str, port: str):
     for i in range(number_of_benchmarks):
-        run(["ghz", "--insecure", "--proto", R_PROTO, "--call",
+        run([GHZ, "--insecure", "--proto", R_PROTO, "--call",
              "proto.Echo.Send", "-c", str(
                  clients), "-n", str(number_of_messages),
              "-d", "{\"content\":\"Random string\"}", "-o",
