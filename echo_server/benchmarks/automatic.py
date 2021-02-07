@@ -2,10 +2,13 @@
 Run this script in the folder where you want all the benchmarks results (Ex:"Wasm/Wasmless" dir).
 Change R_Proto depending on where you run the code
 GHZ needs to be changed depending on where ghz is (if it is installed with brew or go buil)
+
+Program can be runned also like this: python3 autokatic.py name_result_file(ex: 1-Client) 200(number of messages) number_of_clients
 @author: Andrea Esposito
 """
 
 import json
+import sys
 import os
 import subprocess
 from time import sleep
@@ -15,6 +18,7 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 # RELATIVE_PROTOFILE_POSITION
 R_PROTO = "../../proto/echo.proto"
 GHZ = "../../../../ghz/cmd/ghz/ghz"
+
 
 
 def run(cmd):
@@ -29,10 +33,10 @@ def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages
                  clients), "-n", str(number_of_messages),
              "-d", "{\"content\":\"Random string\"}", "-o",
              "(" + str(i+1) + ")" + benchmarks_name + str(number_of_messages) + ".json", "-O", "pretty", port])
-        sleep(10)  # Sleep 10s
+        sleep(0.5)  # Sleep half 1s
 
 
-def getUsefulData():
+def getUsefulData(result: str):
     new_data = {}
 
     new_data["benchmarks"] = []
@@ -79,7 +83,7 @@ def getUsefulData():
 
     })
 
-    newfile = os.path.join(THIS_FOLDER, "AvgResult.json")
+    newfile = os.path.join(THIS_FOLDER, result + ".json")
     with open(newfile, "w") as outfile:
         json.dump(new_data, outfile, indent=3, sort_keys=True)
 
@@ -92,9 +96,27 @@ def cleanUp(name: str):
 
 
 def main():
-    runAllBenchMarks(10, 1, 200, os.path.basename(
+    ## Default Values
+    numberOfClients = 1
+    numberOfMessages = 2
+    resultName = "AvgResult"
+
+    args = len(sys.argv)
+    if args > 1:
+        if args == 3:
+            resultName = sys.argv[1]
+            numberOfMessages = sys.argv[2]
+            numberOfClients = sys.argv[3]
+        if args >=2:
+            resultName = sys.argv[1]
+            numberOfMessages = sys.argv[2]
+        if args == 3:
+            resultName = sys.argv[1]
+
+    
+    runAllBenchMarks(10, numberOfClients, numberOfMessages, os.path.basename(
         THIS_FOLDER), "152.94.1.102:50051")
-    getUsefulData()
+    getUsefulData(resultName )
     cleanUp(os.path.basename(
         THIS_FOLDER))
 
