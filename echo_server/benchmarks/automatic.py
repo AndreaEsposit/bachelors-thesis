@@ -1,6 +1,7 @@
 """
 Run this script in the folder where you want all the benchmarks results (Ex:"Wasm/Wasmless" dir).
 Change R_Proto depending on where you run the code
+GHZ needs to be changed depending on where ghz is (if it is installed with brew or go buil)
 @author: Andrea Esposito
 """
 
