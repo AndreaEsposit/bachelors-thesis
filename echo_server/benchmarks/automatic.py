@@ -61,7 +61,7 @@ def getUsefulData():
                     avg = sum_latency / len(details)
 
                     new_data["benchmarks"].append({
-                        "file_name": entry.name.removesuffix(".json"),
+                        "file_name": entry.name.replace(".json", ""),
                         "avg_latency(ms)": float(avg * (10 ** -6)),
                         "avg_respons_time(ms)": data["average"] * (10 ** -6),
                         "requests/sec(throughput)": data["rps"],
