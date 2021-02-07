@@ -29,7 +29,7 @@ def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages
                  clients), "-n", str(number_of_messages),
              "-d", "{\"content\":\"Random string\"}", "-o",
              "(" + str(i+1) + ")" + benchmarks_name + str(number_of_messages) + ".json", "-O", "pretty", port])
-        sleep(0.05)  # Sleep 50 ms
+        sleep(10)  # Sleep 10s
 
 
 def getUsefulData():
