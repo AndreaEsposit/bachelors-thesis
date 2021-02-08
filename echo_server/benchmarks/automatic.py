@@ -17,7 +17,7 @@ from time import sleep
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 # RELATIVE_PROTOFILE_POSITION
 R_PROTO = "../../proto/echo.proto"
-GHZ = "../../../../ghz/cmd/ghz/ghz"
+GHZ = "../../../../ghz/cmd/ghz/ghz"s
 
 
 def run(cmd):
@@ -30,7 +30,7 @@ def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages
         run([GHZ, "--insecure", "--proto", R_PROTO, "--call",
              "proto.Echo.Send", "-c", str(
                  clients), "-n", str(number_of_messages),
-             "-d", "{\"content\":\"Random string\"}", "-o",
+             "-d", "{\"content\":\"This text should show what aprinted text will look like at this place.\"}", "-o",
              "(" + str(i+1) + ")" + benchmarks_name + str(number_of_messages) + ".json", "-O", "pretty", port])
 
 
