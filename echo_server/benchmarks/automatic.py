@@ -114,7 +114,7 @@ def main():
             resultName = sys.argv[1]
 
     
-    runAllBenchMarks(10, numberOfClients, numberOfMessages, os.path.basename(
+    runAllBenchMarks(3, numberOfClients, numberOfMessages, os.path.basename(
         THIS_FOLDER), "152.94.1.102:50051")
     getUsefulData(resultName )
     cleanUp(os.path.basename(
