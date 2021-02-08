@@ -92,7 +92,7 @@ func NewEchoServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, std
 
 // Send is the function called by the clients
 func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*pb.EchoMessage, error) {
-	fmt.Printf("Server recived: '%v'\n", message.Content)
+	//fmt.Printf("Server recived: '%v'\n", message.Content)
 	recivedBytes, err := proto.Marshal(message)
 	check(err)
 
