@@ -20,7 +20,6 @@ R_PROTO = "../../proto/echo.proto"
 GHZ = "../../../../ghz/cmd/ghz/ghz"
 
 
-
 def run(cmd):
     p = subprocess.Popen(cmd)
     p.wait()
@@ -33,7 +32,6 @@ def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages
                  clients), "-n", str(number_of_messages),
              "-d", "{\"content\":\"Random string\"}", "-o",
              "(" + str(i+1) + ")" + benchmarks_name + str(number_of_messages) + ".json", "-O", "pretty", port])
-        sleep(0.5)  # Sleep half 1s
 
 
 def getUsefulData(result: str):
@@ -96,29 +94,15 @@ def cleanUp(name: str):
 
 
 def main():
-    ## Default Values
-    numberOfClients = 1
-    numberOfMessages = 200
-    resultName = "AvgResult"
 
-    args = len(sys.argv)
-    if args > 1:
-        if args == 3:
-            resultName = sys.argv[1]
-            numberOfMessages = sys.argv[2]
-            numberOfClients = sys.argv[3]
-        if args >=2:
-            resultName = sys.argv[1]
-            numberOfMessages = sys.argv[2]
-        if args == 3:
-            resultName = sys.argv[1]
+    resultName = sys.argv[1]
+    numberOfMessages = sys.argv[2]
+    numberOfClients = sys.argv[3]
 
-    
     runAllBenchMarks(3, numberOfClients, numberOfMessages, os.path.basename(
         THIS_FOLDER), "152.94.1.102:50051")
-    getUsefulData(resultName )
-    cleanUp(os.path.basename(
-        THIS_FOLDER))
+    getUsefulData(resultName)
+    cleanUp(os.path.basename(THIS_FOLDER))
 
 
 if __name__ == "__main__":
