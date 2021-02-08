@@ -1,5 +1,5 @@
 [package]
-name = "new_rust_write"
+name = "storage_application"
 version = "0.1.0"
 authors = ["Andrea Esposito <ryuesposito@gmail.com>"]
 edition = "2018"
