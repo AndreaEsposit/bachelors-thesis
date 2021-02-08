@@ -17,7 +17,7 @@ from time import sleep
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 # RELATIVE_PROTOFILE_POSITION
 R_PROTO = "../../proto/echo.proto"
-GHZ = "../../../../ghz/cmd/ghz/ghz"s
+GHZ = "../../../../ghz/cmd/ghz/ghz"
 
 
 def run(cmd):
