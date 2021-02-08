@@ -98,7 +98,7 @@ def cleanUp(name: str):
 def main():
     ## Default Values
     numberOfClients = 1
-    numberOfMessages = 2
+    numberOfMessages = 200
     resultName = "AvgResult"
 
     args = len(sys.argv)
