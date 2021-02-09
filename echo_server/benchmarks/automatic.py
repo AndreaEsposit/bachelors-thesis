@@ -19,18 +19,21 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 R_PROTO = "../../proto/echo.proto"
 GHZ = "../../../../ghz/cmd/ghz/ghz"
 
+s1kb = "Lorem ipsum dolor sit amet, dolore graeco ancillae ut eam. Eam quod albucius ex. Cu vim nonumy ponderum salutatus, est mollis nonumes te. Ad tota illud illum sea, cum id iudicabit moderatius. Sed regione vocibus corrumpit no. Facete mentitum volutpat in cum, ei dicunt antiopam eum. Ex vis congue latine assentior, essent moderatius vix an. Dolorem blandit eu cum. Vis ei dolores probatus, id vel consul labore. Eam at omnium volutpat, qui ex iuvaret volutpat, no mel affert pertinacia. Blandit platonem scribentur no has, vix ignota animal conclusionemque no, lucilius repudiare contentiones nam ut. Consul aeterno salutatus per in. Ea latine electram pro, usu diceret copiosae ne. Ne debet iuvaret contentiones vel, errem delenit ut mei. Ad perfecto scripserit pri, mea nibh evertitur ex, movet mediocritatem ea pro. Mel ei adhuc adolescens. Has quis solet cu, constituto definiebas nam ex. Ne hendrerit dissentiunt nam. Justo inermis perpetua qui ad, ea per velit quodsi commune, has latine accusa"
+s10kb = s1kb * 10
+
 
 def run(cmd):
     p = subprocess.Popen(cmd)
     p.wait()
 
 
-def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages: int, benchmarks_name: str, port: str):
+def runAllBenchMarks(number_of_benchmarks: int, clients: int, number_of_messages: int, benchmarks_name: str, port: str, message_string: str):
     for i in range(number_of_benchmarks):
         run([GHZ, "--insecure", "--proto", R_PROTO, "--call",
              "proto.Echo.Send", "-c", str(
                  clients), "-n", str(number_of_messages),
-             "-d", "{\"content\":\"This text should show what aprinted text will look like at this place.\"}", "-o",
+             "-d", "{\"content\":\"" + message_string + "\"}", "-o",
              "(" + str(i+1) + ")" + benchmarks_name + str(number_of_messages) + ".json", "-O", "pretty", port])
 
 
@@ -100,7 +103,7 @@ def main():
     numberOfClients = sys.argv[3]
 
     runAllBenchMarks(3, numberOfClients, numberOfMessages, os.path.basename(
-        THIS_FOLDER), "152.94.1.102:50051")
+        THIS_FOLDER), "152.94.1.102:50051", s1kb)
     getUsefulData(resultName)
     cleanUp(os.path.basename(THIS_FOLDER))
 
