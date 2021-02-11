@@ -3,10 +3,15 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"time"
 
+	pb "github.com/AndreaEsposit/practice/wasm_write_to_file/proto"
 	"github.com/bytecodealliance/wasmtime-go"
+	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -48,73 +53,66 @@ func main() {
 		panic(err)
 	}
 
-	alloc := instance.GetExport("new_alloc").Func()
-	str := []byte("hello alloc function")
-	ptr1, err := alloc.Call(len(str))
-	//check(err)
-	ptr132 := ptr1.(int32)
-
 	mem := instance.GetExport("memory").Memory()
-	buf := mem.UnsafeData()
-
-	for i := range str {
-		buf[ptr132+int32(i)] = str[i]
-	}
-
-	storeData := instance.GetExport("store_data").Func()
-	_, err = storeData.Call(ptr132, len(str))
-	check(err)
-
+	alloc := instance.GetExport("new_alloc").Func()
 	dealloc := instance.GetExport("new_dealloc").Func()
-	_, err = dealloc.Call(ptr132, len(str))
+	write := instance.GetExport("store_data").Func()
+	getResultLen := instance.GetExport("get_response_len").Func()
+	readData := instance.GetExport("read_data").Func()
+
+	timep, err := ptypes.TimestampProto(time.Now())
+	writeM := pb.WriteRequest{FileName: "Wasm", Value: "Important string", Timestamp: timep}
+
+	dataBytes, err := proto.Marshal(&writeM)
 	check(err)
 
-	rData := instance.GetExport("retrive_data").Func()
-	newPtr, err := rData.Call()
-	newPtr32 := newPtr.(int32)
-	check(err)
+	response := callFunction(write, getResultLen, alloc, dealloc, mem, dataBytes)
 
-	fmt.Printf("Pointer of 'retrive data' : %v\n\n", newPtr32)
-
-	getlen := instance.GetExport("get_message_len").Func()
-	nml, err := getlen.Call()
-	check(err)
-	newMessageLen := nml.(int32)
-
-	newContent := make([]byte, newMessageLen)
-	for i := range newContent {
-		newContent[i] = buf[newPtr32+int32(i)]
+	returnMessage := &pb.WriteResponse{}
+	if err := proto.Unmarshal(response, returnMessage); err != nil {
+		log.Fatalln("Failed to parse message: ", err)
 	}
 
-	fmt.Printf("THIS IS THE DATA from the file: '   %v   '\n", string(newContent))
+	r := returnMessage.GetOk()
+	if r == 1 {
+		fmt.Println("We managed")
 
-	_, err = dealloc.Call(newPtr32, newMessageLen)
-	check(err)
-
-	newContent = make([]byte, newMessageLen)
-	for i := range newContent {
-		newContent[i] = buf[newPtr32+int32(i)]
+	} else {
+		fmt.Println("We fucked up")
 	}
 
-	fmt.Printf("THIS IS THE DATA AFTER DEALLOC: '   %v   '\n", string(newContent))
+	// timep, err = ptypes.TimestampProto(time.Now())
+	// writeM = pb.WriteRequest{FileName: "Wasm", Value: "Important string", Timestamp: timep}
 
-	rData2 := instance.GetExport("retrive_data2").Func()
-	newPtr, err = rData2.Call()
-	newPtr32 = newPtr.(int32)
+	// dataBytes, err = proto.Marshal(&writeM)
+	// check(err)
+
+	// response = callFunction(write, getResultLen, alloc, dealloc, mem, dataBytes)
+
+	// returnMessage = &pb.WriteResponse{}
+	// if err := proto.Unmarshal(response, returnMessage); err != nil {
+	// 	log.Fatalln("Failed to parse message: ", err)
+	// }
+
+	// r = returnMessage.GetOk()
+	// if r == 1 {
+	// 	fmt.Println("We managed")
+
+	// } else {
+	// 	fmt.Println("We fucked up")
+	// }
+
+	readM := pb.ReadRequest{FileName: "Wasm"}
+	dataBytes, err = proto.Marshal(&readM)
 	check(err)
+	response = callFunction(readData, getResultLen, alloc, dealloc, mem, dataBytes)
 
-	fmt.Printf("Pointer of 'retrive data2' : %v\n\n", newPtr32)
-
-	nml, err = getlen.Call()
-	check(err)
-	newMessageLen = nml.(int32)
-
-	newContent = make([]byte, newMessageLen)
-	for i := range newContent {
-		newContent[i] = buf[newPtr32+int32(i)]
+	returnM := &pb.ReadResponse{}
+	if err := proto.Unmarshal(response, returnM); err != nil {
+		log.Fatalln("Failed to parse message: ", err)
 	}
 
-	fmt.Printf("THIS IS THE DATA AFTER DEALLOC: '   %v   '\n", string(newContent))
+	fmt.Printf("This is the answer: %v\n", returnM)
 
 	out, err := ioutil.ReadFile(stdoutPath)
 	check(err)
@@ -125,4 +123,51 @@ func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func copyMemory(alloc *wasmtime.Func, memory *wasmtime.Memory, data []byte) int32 {
+
+	// allocate memory in wasm
+	ptr, err := alloc.Call(int32(len(data)))
+	check(err)
+
+	// casting pointer to int32
+	ptr32 := ptr.(int32)
+
+	// return raw memory backed by the WebAssembly memory as a byte slice
+	buf := memory.UnsafeData()
+	for i, v := range data {
+		buf[ptr32+int32(i)] = v
+	}
+	// return the pointer
+	return ptr32
+}
+
+func callFunction(fn, getSize, alloc, dealloc *wasmtime.Func, memory *wasmtime.Memory, data []byte) (response []byte) {
+	ptr := copyMemory(alloc, memory, data)
+	len := int32(len(data))
+
+	resPtr, err := fn.Call(ptr, len)
+	check(err)
+	resPtr32 := resPtr.(int32)
+
+	// deallocate request protobuf message
+	_, err = dealloc.Call(ptr, len)
+	check(err)
+
+	resultLen, err := getSize.Call()
+	check(err)
+	intResLen := resultLen.(int32)
+
+	buf := memory.UnsafeData()
+	response = make([]byte, int(intResLen))
+	for i := range response {
+		response[i] = buf[resPtr32+int32(i)]
+	}
+
+	// deallocate response protobuf message
+	_, err = dealloc.Call(resPtr32, intResLen)
+	check(err)
+
+	return response
 }

@@ -1,28 +1,30 @@
-// protoc -I=$(go list -m -f {{.Dir}} github.com/relab/gorums):. --go_out=paths=source_relative:. --gorums_out=paths=source_relative:. storage.proto
+// protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:.  storage.proto
+// python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. storage.proto
 syntax = "proto3";
 
 package proto;
 
 option go_package = "storage_server/proto";
-
-import "gorums.proto";
+import "google/protobuf/timestamp.proto";
 
 service Storage {
-  rpc Read(ReadRequest) returns (State) {
-    option (gorums.ordered) = true;
-  }
-  rpc Write(State) returns (WriteResponse) {
-    option (gorums.ordered) = true;
-  }
+  rpc Read(ReadRequest) returns (ReadResponse);
+  rpc Write(WriteRequest) returns (WriteResponse);
 }
 
-message State {
-  string Value = 1;
-  int64 Timestamp = 2;
+message WriteRequest {
+  string FileName = 1;
+  string Value = 2;
+  google.protobuf.Timestamp Timestamp = 3;
 }
+
+message ReadRequest { string FileName = 1;}
 
 message WriteResponse {
-  bool New = 1;
+  int32 Ok = 1;
 }
 
-message ReadRequest {}
+message ReadResponse{
+  string Value = 1; 
+  google.protobuf.Timestamp Timestamp = 3;
+}

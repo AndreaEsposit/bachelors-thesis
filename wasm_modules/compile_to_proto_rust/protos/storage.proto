@@ -1,0 +1,30 @@
+// protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:.  storage.proto
+// python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. storage.proto
+syntax = "proto3";
+
+package proto;
+
+option go_package = "storage_server/proto";
+import "google/protobuf/timestamp.proto";
+
+service Storage {
+  rpc Read(ReadRequest) returns (ReadResponse);
+  rpc Write(WriteRequest) returns (WriteResponse);
+}
+
+message WriteRequest {
+  string FileName = 1;
+  string Value = 2;
+  google.protobuf.Timestamp Timestamp = 3;
+}
+
+message ReadRequest { string FileName = 1;}
+
+message WriteResponse {
+  int32 Ok = 1;
+}
+
+message ReadResponse{
+  string Value = 1; 
+  google.protobuf.Timestamp Timestamp = 3;
+}
