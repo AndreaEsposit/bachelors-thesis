@@ -146,15 +146,19 @@ func read(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 	returnMessage, err := client.Read(context.Background(), &message)
 	check(err)
 
-	fmt.Printf("This is the content that you have recived from the server: %v\n", returnMessage)
+	if returnMessage.GetOk() == 0 {
+		fmt.Println("File does note exist")
+	} else {
+		fmt.Printf("This is the content that you have recived from the server: %v\n", returnMessage)
+	}
 
-	fmt.Print("'Exit/exit/e' to go back to mode selection:  ")
+	fmt.Print("'Back/back/b' to go back to mode selection:  ")
 	command, _ := reader.ReadString('\n')
 
 	command = strings.Replace(command, "\n", "", -1)
 	fmt.Println("")
 
-	if command == "exit" || command == "Exit" || command == "e" {
+	if command == "back" || command == "Bxit" || command == "b" {
 		return 1
 	}
 	return 0
