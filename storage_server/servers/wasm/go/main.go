@@ -35,7 +35,7 @@ func main() {
 	wasiConfig.SetStdoutFile(stdoutPath)
 
 	// pass access to this folder directory to the Wasm module
-	err = wasiConfig.PreopenDir(".", "./data")
+	err = wasiConfig.PreopenDir("./data", ".")
 	check(err)
 
 	// set the version to the same as in the WAT.
@@ -47,7 +47,7 @@ func main() {
 	check(err)
 
 	// create the WebAssembly-module
-	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/echo_server.wasm")
+	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/storage_application.wasm")
 	check(err)
 	instance, err := linker.Instantiate(module)
 	check(err)
@@ -79,7 +79,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterStorageServer(grpcServer, server)
-	fmt.Printf("Server is running at :%v.\n", server.port)
+	fmt.Printf("Server is running at %v.\n", server.port)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal(err)

@@ -28,7 +28,7 @@ func main() {
 	// configure WASI imports to write stdout into a file.
 	wasiConfig := wasmtime.NewWasiConfig()
 	wasiConfig.SetStdoutFile(stdoutPath)
-	err = wasiConfig.PreopenDir(".", ".")
+	err = wasiConfig.PreopenDir("./data", ".")
 	check(err)
 
 	// set the version to the same as in the WAT.

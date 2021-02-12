@@ -20,21 +20,23 @@ func main() {
 	client := pb.NewStorageClient(conn)
 	reader := bufio.NewReader(os.Stdout)
 
-	fmt.Println("Exit/exit/e' to exit this program")
-	choice := chooseMode(reader)
+	for {
+		fmt.Println("Exit/exit/e' to exit this program")
+		choice := chooseMode(reader)
 
-	if choice == 1 {
-		exit := 0
-		for exit == 0 {
-			exit = read(reader, client)
+		if choice == 1 {
+			exit := 0
+			for exit == 0 {
+				exit = read(reader, client)
+			}
+		} else {
+			exit := 0
+			for exit == 0 {
+				exit = write(reader, client)
+			}
 		}
-	} else {
-		exit := 0
-		for exit == 0 {
-			exit = write(reader, client)
-		}
+
 	}
-
 }
 
 func check(err error) {
@@ -72,7 +74,7 @@ func write(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 
 	for {
 		fmt.Print("Name of storage (file name): ")
-		fName, _ := reader.ReadString('\n')
+		fName, _ = reader.ReadString('\n')
 
 		fName = strings.Replace(fName, "\n", "", -1)
 
@@ -84,7 +86,7 @@ func write(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 	}
 	for {
 		fmt.Print("Message to store: ")
-		value, _ := reader.ReadString('\n')
+		value, _ = reader.ReadString('\n')
 
 		value = strings.Replace(value, "\n", "", -1)
 
@@ -98,6 +100,8 @@ func write(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 	timep, err := ptypes.TimestampProto(time.Now())
 	message := pb.WriteRequest{FileName: fName, Value: value, Timestamp: timep}
 
+	fmt.Printf("We are sending this message: %v\n", message)
+
 	returnMessage, err := client.Write(context.Background(), &message)
 	check(err)
 
@@ -108,12 +112,13 @@ func write(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 		fmt.Println("Data stored successfully")
 	}
 
-	fmt.Print("'Exit/exit/e' to go back to mode selection:  ")
+	fmt.Print("'Back/back/b' to go back to mode selection:  ")
 	command, _ := reader.ReadString('\n')
 
-	command = strings.Replace(value, "\n", "", -1)
+	command = strings.Replace(command, "\n", "", -1)
+	fmt.Println("")
 
-	if command == "exit" || command == "Exit" || command == "e" {
+	if command == "back" || command == "Bxit" || command == "b" {
 		return 1
 	}
 	return 0
@@ -121,11 +126,11 @@ func write(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 
 func read(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 	// Write
-	var fName, value string
+	var fName string
 
 	for {
 		fmt.Print("Name of the storage that you wanna read (file name): ")
-		fName, _ := reader.ReadString('\n')
+		fName, _ = reader.ReadString('\n')
 
 		fName = strings.Replace(fName, "\n", "", -1)
 
@@ -146,7 +151,8 @@ func read(reader *bufio.Reader, client pb.StorageClient) (choice int) {
 	fmt.Print("'Exit/exit/e' to go back to mode selection:  ")
 	command, _ := reader.ReadString('\n')
 
-	command = strings.Replace(value, "\n", "", -1)
+	command = strings.Replace(command, "\n", "", -1)
+	fmt.Println("")
 
 	if command == "exit" || command == "Exit" || command == "e" {
 		return 1
