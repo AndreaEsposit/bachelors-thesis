@@ -26,5 +26,6 @@ message WriteResponse {
 
 message ReadResponse{
   string Value = 1; 
+  int32 Ok = 2; 
   google.protobuf.Timestamp Timestamp = 3;
 }

@@ -6,11 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	pb "github.com/AndreaEsposit/practice/wasm_write_to_file/proto"
 	"github.com/bytecodealliance/wasmtime-go"
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -56,30 +54,30 @@ func main() {
 	mem := instance.GetExport("memory").Memory()
 	alloc := instance.GetExport("new_alloc").Func()
 	dealloc := instance.GetExport("new_dealloc").Func()
-	write := instance.GetExport("store_data").Func()
+	//write := instance.GetExport("store_data").Func()
 	getResultLen := instance.GetExport("get_response_len").Func()
 	readData := instance.GetExport("read_data").Func()
 
-	timep, err := ptypes.TimestampProto(time.Now())
-	writeM := pb.WriteRequest{FileName: "Wasm", Value: "Important string", Timestamp: timep}
+	// timep, err := ptypes.TimestampProto(time.Now())
+	// writeM := pb.WriteRequest{FileName: "Wasm", Value: "Important string", Timestamp: timep}
 
-	dataBytes, err := proto.Marshal(&writeM)
-	check(err)
+	// dataBytes, err := proto.Marshal(&writeM)
+	// check(err)
 
-	response := callFunction(write, getResultLen, alloc, dealloc, mem, dataBytes)
+	// response := callFunction(write, getResultLen, alloc, dealloc, mem, dataBytes)
 
-	returnMessage := &pb.WriteResponse{}
-	if err := proto.Unmarshal(response, returnMessage); err != nil {
-		log.Fatalln("Failed to parse message: ", err)
-	}
+	// returnMessage := &pb.WriteResponse{}
+	// if err := proto.Unmarshal(response, returnMessage); err != nil {
+	// 	log.Fatalln("Failed to parse message: ", err)
+	// }
 
-	r := returnMessage.GetOk()
-	if r == 1 {
-		fmt.Println("We managed")
+	// r := returnMessage.GetOk()
+	// if r == 1 {
+	// 	fmt.Println("We managed")
 
-	} else {
-		fmt.Println("We fucked up")
-	}
+	// } else {
+	// 	fmt.Println("We fucked up")
+	// }
 
 	// timep, err = ptypes.TimestampProto(time.Now())
 	// writeM = pb.WriteRequest{FileName: "Wasm", Value: "Important string", Timestamp: timep}
@@ -102,10 +100,10 @@ func main() {
 	// 	fmt.Println("We fucked up")
 	// }
 
-	readM := pb.ReadRequest{FileName: "Wasm"}
-	dataBytes, err = proto.Marshal(&readM)
+	readM := pb.ReadRequest{FileName: "asm"}
+	dataBytes, err := proto.Marshal(&readM)
 	check(err)
-	response = callFunction(readData, getResultLen, alloc, dealloc, mem, dataBytes)
+	response := callFunction(readData, getResultLen, alloc, dealloc, mem, dataBytes)
 
 	returnM := &pb.ReadResponse{}
 	if err := proto.Unmarshal(response, returnM); err != nil {

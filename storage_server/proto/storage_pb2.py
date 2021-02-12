@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'Z\024storage_server/proto',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rstorage.proto\x12\x05proto\x1a\x1fgoogle/protobuf/timestamp.proto\"^\n\x0cWriteRequest\x12\x10\n\x08\x46ileName\x18\x01 \x01(\t\x12\r\n\x05Value\x18\x02 \x01(\t\x12-\n\tTimestamp\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x1f\n\x0bReadRequest\x12\x10\n\x08\x46ileName\x18\x01 \x01(\t\"\x1b\n\rWriteResponse\x12\n\n\x02Ok\x18\x01 \x01(\x05\"L\n\x0cReadResponse\x12\r\n\x05Value\x18\x01 \x01(\t\x12-\n\tTimestamp\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2n\n\x07Storage\x12/\n\x04Read\x12\x12.proto.ReadRequest\x1a\x13.proto.ReadResponse\x12\x32\n\x05Write\x12\x13.proto.WriteRequest\x1a\x14.proto.WriteResponseB\x16Z\x14storage_server/protob\x06proto3'
+  serialized_pb=b'\n\rstorage.proto\x12\x05proto\x1a\x1fgoogle/protobuf/timestamp.proto\"^\n\x0cWriteRequest\x12\x10\n\x08\x46ileName\x18\x01 \x01(\t\x12\r\n\x05Value\x18\x02 \x01(\t\x12-\n\tTimestamp\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x1f\n\x0bReadRequest\x12\x10\n\x08\x46ileName\x18\x01 \x01(\t\"\x1b\n\rWriteResponse\x12\n\n\x02Ok\x18\x01 \x01(\x05\"X\n\x0cReadResponse\x12\r\n\x05Value\x18\x01 \x01(\t\x12\n\n\x02Ok\x18\x02 \x01(\x05\x12-\n\tTimestamp\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp2n\n\x07Storage\x12/\n\x04Read\x12\x12.proto.ReadRequest\x1a\x13.proto.ReadResponse\x12\x32\n\x05Write\x12\x13.proto.WriteRequest\x1a\x14.proto.WriteResponseB\x16Z\x14storage_server/protob\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -153,7 +153,14 @@ _READRESPONSE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='Timestamp', full_name='proto.ReadResponse.Timestamp', index=1,
+      name='Ok', full_name='proto.ReadResponse.Ok', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='Timestamp', full_name='proto.ReadResponse.Timestamp', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -172,7 +179,7 @@ _READRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=215,
-  serialized_end=291,
+  serialized_end=303,
 )
 
 _WRITEREQUEST.fields_by_name['Timestamp'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
@@ -221,8 +228,8 @@ _STORAGE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=293,
-  serialized_end=403,
+  serialized_start=305,
+  serialized_end=415,
   methods=[
   _descriptor.MethodDescriptor(
     name='Read',

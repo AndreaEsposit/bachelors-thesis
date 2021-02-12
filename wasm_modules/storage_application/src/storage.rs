@@ -596,6 +596,7 @@ impl ::protobuf::reflect::ProtobufValue for WriteResponse {
 pub struct ReadResponse {
     // message fields
     pub Value: ::std::string::String,
+    pub Ok: i32,
     pub Timestamp: ::protobuf::SingularPtrField<::protobuf::well_known_types::Timestamp>,
     // special fields
     pub unknown_fields: ::protobuf::UnknownFields,
@@ -637,6 +638,21 @@ impl ReadResponse {
     // Take field
     pub fn take_Value(&mut self) -> ::std::string::String {
         ::std::mem::replace(&mut self.Value, ::std::string::String::new())
+    }
+
+    // int32 Ok = 2;
+
+
+    pub fn get_Ok(&self) -> i32 {
+        self.Ok
+    }
+    pub fn clear_Ok(&mut self) {
+        self.Ok = 0;
+    }
+
+    // Param is passed by value, moved
+    pub fn set_Ok(&mut self, v: i32) {
+        self.Ok = v;
     }
 
     // .google.protobuf.Timestamp Timestamp = 3;
@@ -690,6 +706,13 @@ impl ::protobuf::Message for ReadResponse {
                 1 => {
                     ::protobuf::rt::read_singular_proto3_string_into(wire_type, is, &mut self.Value)?;
                 },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeVarint {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_int32()?;
+                    self.Ok = tmp;
+                },
                 3 => {
                     ::protobuf::rt::read_singular_message_into(wire_type, is, &mut self.Timestamp)?;
                 },
@@ -708,6 +731,9 @@ impl ::protobuf::Message for ReadResponse {
         if !self.Value.is_empty() {
             my_size += ::protobuf::rt::string_size(1, &self.Value);
         }
+        if self.Ok != 0 {
+            my_size += ::protobuf::rt::value_size(2, self.Ok, ::protobuf::wire_format::WireTypeVarint);
+        }
         if let Some(ref v) = self.Timestamp.as_ref() {
             let len = v.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
@@ -720,6 +746,9 @@ impl ::protobuf::Message for ReadResponse {
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::ProtobufResult<()> {
         if !self.Value.is_empty() {
             os.write_string(1, &self.Value)?;
+        }
+        if self.Ok != 0 {
+            os.write_int32(2, self.Ok)?;
         }
         if let Some(ref v) = self.Timestamp.as_ref() {
             os.write_tag(3, ::protobuf::wire_format::WireTypeLengthDelimited)?;
@@ -769,6 +798,11 @@ impl ::protobuf::Message for ReadResponse {
                 |m: &ReadResponse| { &m.Value },
                 |m: &mut ReadResponse| { &mut m.Value },
             ));
+            fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeInt32>(
+                "Ok",
+                |m: &ReadResponse| { &m.Ok },
+                |m: &mut ReadResponse| { &mut m.Ok },
+            ));
             fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<::protobuf::well_known_types::Timestamp>>(
                 "Timestamp",
                 |m: &ReadResponse| { &m.Timestamp },
@@ -791,6 +825,7 @@ impl ::protobuf::Message for ReadResponse {
 impl ::protobuf::Clear for ReadResponse {
     fn clear(&mut self) {
         self.Value.clear();
+        self.Ok = 0;
         self.Timestamp.clear();
         self.unknown_fields.clear();
     }
@@ -814,12 +849,13 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \x12\x14\n\x05Value\x18\x02\x20\x01(\tR\x05Value\x128\n\tTimestamp\x18\
     \x03\x20\x01(\x0b2\x1a.google.protobuf.TimestampR\tTimestamp\")\n\x0bRea\
     dRequest\x12\x1a\n\x08FileName\x18\x01\x20\x01(\tR\x08FileName\"\x1f\n\r\
-    WriteResponse\x12\x0e\n\x02Ok\x18\x01\x20\x01(\x05R\x02Ok\"^\n\x0cReadRe\
-    sponse\x12\x14\n\x05Value\x18\x01\x20\x01(\tR\x05Value\x128\n\tTimestamp\
-    \x18\x03\x20\x01(\x0b2\x1a.google.protobuf.TimestampR\tTimestamp2n\n\x07\
-    Storage\x12/\n\x04Read\x12\x12.proto.ReadRequest\x1a\x13.proto.ReadRespo\
-    nse\x122\n\x05Write\x12\x13.proto.WriteRequest\x1a\x14.proto.WriteRespon\
-    seB\x16Z\x14storage_server/protob\x06proto3\
+    WriteResponse\x12\x0e\n\x02Ok\x18\x01\x20\x01(\x05R\x02Ok\"n\n\x0cReadRe\
+    sponse\x12\x14\n\x05Value\x18\x01\x20\x01(\tR\x05Value\x12\x0e\n\x02Ok\
+    \x18\x02\x20\x01(\x05R\x02Ok\x128\n\tTimestamp\x18\x03\x20\x01(\x0b2\x1a\
+    .google.protobuf.TimestampR\tTimestamp2n\n\x07Storage\x12/\n\x04Read\x12\
+    \x12.proto.ReadRequest\x1a\x13.proto.ReadResponse\x122\n\x05Write\x12\
+    \x13.proto.WriteRequest\x1a\x14.proto.WriteResponseB\x16Z\x14storage_ser\
+    ver/protob\x06proto3\
 ";
 
 static file_descriptor_proto_lazy: ::protobuf::rt::LazyV2<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::rt::LazyV2::INIT;

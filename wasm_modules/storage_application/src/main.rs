@@ -93,30 +93,56 @@ pub extern "C" fn read_data(ptr: *mut u8, length: usize) -> *mut u8 {
     file_path.push_str(pb_message.get_FileName());
     file_path.push_str(".json");
     let pathf = Path::new(&file_path);
-    let file = File::open(pathf).expect("File not found");
-    let reader = io::BufReader::new(file);
+    let file = File::open(pathf);
 
-    let file_content: Content =
-        serde_json::from_reader(reader).expect("JSON was not well-formatted");
+    match file {
+        Ok(file) => {
+            let reader = io::BufReader::new(file);
 
-    let mut time = protobuf::well_known_types::Timestamp::new();
-    time.set_nanos(file_content.nseconds);
-    time.set_seconds(file_content.seconds);
+            let file_content: Content =
+                serde_json::from_reader(reader).expect("JSON was not well-formatted");
 
-    // return response
-    let mut response: ReadResponse = protobuf::Message::new();
-    response.set_Value(file_content.value);
-    response.set_Timestamp(time);
+            let mut time = protobuf::well_known_types::Timestamp::new();
+            time.set_nanos(file_content.nseconds);
+            time.set_seconds(file_content.seconds);
 
-    let mut new_bytes = protobuf::Message::write_to_bytes(&response)
-        .expect("Something went wrong marshalling the pb-message");
+            // return response
+            let mut response: ReadResponse = protobuf::Message::new();
+            response.set_Value(file_content.value);
+            response.set_Ok(1);
+            response.set_Timestamp(time);
 
-    unsafe {
-        RESPONSE_LEN = new_bytes.capacity() as i32;
-    }
-    let new_ptr = new_bytes.as_mut_ptr();
-    // take ownership of the memory block where the new message is written and esure its
-    // destryctuion is not called when the object goes out of scope at the end of the func
-    std::mem::forget(new_bytes);
-    new_ptr
+            let mut new_bytes = protobuf::Message::write_to_bytes(&response)
+                .expect("Something went wrong marshalling the pb-message");
+
+            unsafe {
+                RESPONSE_LEN = new_bytes.capacity() as i32;
+            }
+            let new_ptr = new_bytes.as_mut_ptr();
+            // take ownership of the memory block where the new message is written and esure its
+            // destryctuion is not called when the object goes out of scope at the end of the func
+            std::mem::forget(new_bytes);
+            return new_ptr;
+        }
+        Err(_e) => {
+            // return response
+            let mut response: ReadResponse = protobuf::Message::new();
+            let time = protobuf::well_known_types::Timestamp::new();
+            response.set_Value("".to_string());
+            response.set_Ok(0);
+            response.set_Timestamp(time);
+
+            let mut new_bytes = protobuf::Message::write_to_bytes(&response)
+                .expect("Something went wrong marshalling the pb-message");
+
+            unsafe {
+                RESPONSE_LEN = new_bytes.capacity() as i32;
+            }
+            let new_ptr = new_bytes.as_mut_ptr();
+            // take ownership of the memory block where the new message is written and esure its
+            // destryctuion is not called when the object goes out of scope at the end of the func
+            std::mem::forget(new_bytes);
+            return new_ptr;
+        }
+    };
 }
