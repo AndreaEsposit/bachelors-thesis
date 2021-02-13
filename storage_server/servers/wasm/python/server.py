@@ -2,6 +2,7 @@ from wasmtime import *
 from concurrent import futures
 import grpc
 import numpy as np 
+import google.protobuf.message as proto
 
 # Import the generated classes
 import storage_pb2_grpc, storage_pb2
@@ -15,7 +16,7 @@ wasi = WasiInstance(store, "wasi_snapshot_preview1", wasi_config)
 linker.define_wasi(wasi)
 
 # Load and compile the WebAssembly-module
-module_linking = Module.from_file(store.engine, "storage_server/servers/wasm/wasm_module/storage_application.wasm")
+module_linking = Module.from_file(store.engine, "../wasm_module/storage_application.wasm")
 
 # Instantiate the module which only uses WASI
 instance_linking = linker.instantiate(module_linking)
@@ -40,7 +41,12 @@ grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 # copy_mem handles the copy of serialized data to the
 # Wasm's memory
 def copy_mem(sdata):
-    return
+    ptr = alloc(np.int32(len(sdata)))
+
+    # cast pointer to int32
+    ptr32 = np.int32(ptr)
+
+    return ptr32
     
 
 
@@ -49,10 +55,12 @@ def copy_mem(sdata):
 class StorageServicer(storage_pb2_grpc.StorageServicer):
 
     def Read(self, request, context):
-        return
+        return_message = storage_pb2.ReadResponse(message='' % request.Filename)
+        return return_message
 
     def Write(self, request, context):
-        return
+        return_message = storage_pb2.WriteResponse(message='' % request.Filename)
+        return return_message
 
 
 # Initialize gRPC server
@@ -61,6 +69,8 @@ def run():
     storage_pb2_grpc.add_StorageServicer_to_server(StorageServicer(), server)
     server.add_insecure_port(grpc_address)
     server.start()
+    print("Server is running at: " + grpc_address)
+    server.wait_for_termination()
 
 if __name__ == "__main__":
     run()
