@@ -32,10 +32,10 @@ init()
 
 # Export functions and memory from the WebAssembly module
 alloc = instance_linking.exports["new_alloc"]
-# dealloc = instance_linking.exports["new_dealloc"]
-# get_len = instance_linking.exports["get_response_len"]
+dealloc = instance_linking.exports["new_dealloc"]
+get_len = instance_linking.exports["get_response_len"]
 write = instance_linking.exports["store_data"]
-# read = instance_linking.exports["read_data"]
+read = instance_linking.exports["read_data"]
 mem = instance_linking.exports["memory"]
 
 # gRPC related variables
@@ -45,15 +45,40 @@ grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
 # copy_mem handles the copy of serialized data to the
 # Wasm's memory
-def copy_mem(sdata):
+def copy_memory(sdata):
     ptr = alloc(np.int32(len(sdata)))
 
     # cast pointer to int32
     ptr32 = np.int32(ptr)
 
-    buffer = mem.data_ptr
+    for i, v in enumerate(sdata):
+        mem.data_ptr[ptr32 + np.int32(i)] = v
 
     return ptr32
+
+# call_function handles all the calls the desired
+def call_function(fn, m):
+    received_bytes = proto.Message.SerializeToString(m)
+
+    ptr = copy_memory(received_bytes)
+    length = np.int32(len(received_bytes))
+
+    res_ptr = fn(ptr, length)
+    res_ptr32 = np.int32(res_ptr)
+    
+    # deallocate request protobuf message
+    dealloc(ptr, length)
+
+    result_len = get_len()
+    int_res_len = np.int32(result_len)
+
+    response = bytearray(int_res_len)
+    for i in response:
+        response[i] = mem.data_ptr[res_ptr32, int_res_len]
+
+    # deallocate response protobuf message
+    dealloc(res_ptr32, int_res_len)
+    return response
 
 
 
