@@ -1,6 +1,7 @@
 from wasmtime import *
 from concurrent import futures
-import grpc
+import tempfile
+import grpc, time
 import numpy as np 
 import google.protobuf.message as proto
 
@@ -70,7 +71,15 @@ def run():
     server.add_insecure_port(grpc_address)
     server.start()
     print("Server is running at: " + grpc_address)
-    server.wait_for_termination()
+
+    # instead of server.wait_for_termination
+    # since server.start() will not block,
+    # a sleep-loop is added to keep alive 
+    try:
+        while True:
+            time.sleep(86400)
+    except KeyboardInterrupt:
+        server.stop(0)
 
 if __name__ == "__main__":
     run()
