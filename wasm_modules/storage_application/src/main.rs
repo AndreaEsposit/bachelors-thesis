@@ -1,6 +1,7 @@
 // cargo rustc --target wasm32-wasi -- -Z wasi-exec-model=reactor
 #![no_main]
 mod storage;
+use protobuf;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
 use std::alloc::{alloc, dealloc, Layout};

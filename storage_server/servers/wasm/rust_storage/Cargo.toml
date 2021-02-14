@@ -1,0 +1,28 @@
+[package]
+name = "rust_storage"
+version = "0.1.0"
+authors = ["Andrea Esposito <ryuesposito@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]] # Bin to run the storage gRPC server
+name = "storage-server"
+path = "src/server.rs"
+
+# [[bin]] # Bin to run the storage gRPC client
+# name = "storage-client"
+# path = "src/client.rs"
+
+[dependencies]
+tonic = "0.4"
+prost = "0.7"
+prost-types = "0.7"
+tokio = { version = "1.2.0", features = ["macros", "rt-multi-thread"] }
+wasmtime = "0.22.0"
+wasmtime-wasi = "0.22.0"
+anyhow = "1.0.38"
+futures = "0.3.12"
+
+[build-dependencies]
+tonic-build = "0.4"
