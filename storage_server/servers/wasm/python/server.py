@@ -1,10 +1,9 @@
 from concurrent import futures
 from pathlib import Path
-import tempfile
 import wasmtime
-import grpc, time
+import grpc
+import time
 import numpy as np
-import
 
 # Import the generated classes
 import storage_pb2_grpc
@@ -44,6 +43,7 @@ grpc_host = u'[::]'
 grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
+
 # copy_mem handles the copy of serialized data to the
 # Wasm's memory
 def copy_memory(sdata):
@@ -57,6 +57,7 @@ def copy_memory(sdata):
 
     return ptr32
 
+
 # call_function handles all the calls the desired
 def call_function(fn):
     # serialize message (not working)
@@ -68,7 +69,7 @@ def call_function(fn):
 
     res_ptr = fn(ptr, length)
     res_ptr32 = np.int32(res_ptr)
-    
+
     # deallocate request protobuf message
     dealloc(ptr, length)
 
@@ -84,17 +85,16 @@ def call_function(fn):
     return response
 
 
-
 # create a class to define the server functions, derived
 # from storage_pb2_grpc.StorageServicer
 class StorageServicer(storage_pb2_grpc.StorageServicer):
 
     def Read(self, request, context):
-        return_message = storage_pb2.ReadResponse(message='' % request.Filename)
+        return_message = storage_pb2.ReadResponse(message='' % request.FileName)
         return return_message
 
     def Write(self, request, context):
-        return_message = storage_pb2.WriteResponse(message='' % request.Filename)
+        return_message = storage_pb2.WriteResponse(message='' % request.FileName)
         return return_message
 
 
@@ -117,7 +117,6 @@ class Server:
         except KeyboardInterrupt:
             server.stop(0)
 
+
 if __name__ == "__main__":
     Server.run()
-
-
