@@ -20,8 +20,15 @@ pub mod proto {
     tonic::include_proto!("proto"); // The string specified here must match the proto package name
 }
 
-#[derive(Debug, Default)]
-pub struct MyStorage {}
+pub struct MyStorage {
+    handle: MyActorHandle,
+}
+
+impl MyStorage {
+    pub fn new(handle: MyActorHandle) -> Self {
+        MyStorage { handle }
+    }
+}
 
 #[tonic::async_trait]
 impl Storage for MyStorage {
@@ -59,14 +66,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let handler: MyActorHandle = MyActorHandle::new(file);
-    let id = handler.get_unique_id().await;
-
-    println!("This is the id: {:?}", id);
 
     // ---------
 
     let addr = "127.0.0.1:50051".parse()?; // ? used insted of Match here (switch in rust)
-    let store_server = MyStorage::default();
+    let store_server = MyStorage::new(handler);
+    let id = store_server.handle.get_unique_id().await;
+
+    println!("This is the id: {:?}", id);
     println!("Server is running at 127.0.0.1:50051\n");
 
     Server::builder()
@@ -82,6 +89,7 @@ struct MyActor {
     funcs: HashMap<String, wasmtime::Func>,
     n: i32,
 }
+
 enum ActorMessage {
     GetFuncs { respond_to: oneshot::Sender<i32> },
 }
@@ -175,9 +183,6 @@ impl MyActorHandle {
         let (send, recv) = oneshot::channel();
         let msg = ActorMessage::GetFuncs { respond_to: send };
 
-        // Ignore send errors. If this send fails, so does the
-        // recv.await below. There's no reason to check for the
-        // same failure twice.
         let _ = self.sender.send(msg).await;
         recv.await.expect("Actor task has been killed")
     }
