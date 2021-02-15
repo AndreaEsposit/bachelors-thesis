@@ -3,11 +3,12 @@ from pathlib import Path
 import tempfile
 import wasmtime
 import grpc, time
-import numpy as np 
-import google.protobuf.message as proto
+import numpy as np
+import
 
 # Import the generated classes
-import storage_pb2_grpc, storage_pb2
+import storage_pb2_grpc
+import storage_pb2
 
 store = wasmtime.Store()
 
@@ -57,11 +58,13 @@ def copy_memory(sdata):
     return ptr32
 
 # call_function handles all the calls the desired
-def call_function(fn, m):
-    received_bytes = proto.Message.SerializeToString(m)
+def call_function(fn):
+    # serialize message (not working)
+    storage_message = storage_pb2.WriteRequest()
+    bytes_as_string = storage_message.SerializeToString()
 
-    ptr = copy_memory(received_bytes)
-    length = np.int32(len(received_bytes))
+    ptr = copy_memory(bytes_as_string)
+    length = np.int32(len(bytes_as_string))
 
     res_ptr = fn(ptr, length)
     res_ptr32 = np.int32(res_ptr)
