@@ -19,10 +19,14 @@ tonic = "0.4"
 prost = "0.7"
 prost-types = "0.7"
 tokio = { version = "1.2.0", features = ["macros", "rt-multi-thread"] }
-wasmtime = "0.22.0"
-wasmtime-wasi = "0.22.0"
+wasmtime = { git = "https://github.com/bytecodealliance/wasmtime.git", rev = "09b976e1d53a05150c7b8acd36a82b34cec787b3" }
+wasmtime-wasi = { git = "https://github.com/bytecodealliance/wasmtime.git", rev = "09b976e1d53a05150c7b8acd36a82b34cec787b3" }
+wasi-cap-std-sync = { git = "https://github.com/bytecodealliance/wasmtime.git", rev = "09b976e1d53a05150c7b8acd36a82b34cec787b3" }
 anyhow = "1.0.38"
 futures = "0.3.12"
+protobuf = "2.20.0"
+cap-std = "0.13.3"
+bytes = "1.0.1"
 
 [build-dependencies]
 tonic-build = "0.4"
