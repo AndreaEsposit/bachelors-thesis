@@ -20,16 +20,18 @@ func main() {
 	client := pb.NewStorageClient(conn)
 	reader := bufio.NewReader(os.Stdout)
 
-	for {
+	choice := 1
+
+	for choice > 0 {
 		fmt.Println("Exit/exit/e' to exit this program")
-		choice := chooseMode(reader)
+		choice = chooseMode(reader)
 
 		if choice == 1 {
 			exit := 0
 			for exit == 0 {
 				exit = read(reader, client)
 			}
-		} else {
+		} else if choice == 2 {
 			exit := 0
 			for exit == 0 {
 				exit = write(reader, client)
@@ -53,6 +55,7 @@ func chooseMode(reader *bufio.Reader) (choice int) {
 		command = strings.Replace(command, "\n", "", -1)
 
 		if command == "exit" || command == "Exit" || command == "e" {
+			choice = 0
 			break
 		} else if command == "r" {
 			choice = 1
