@@ -9,9 +9,8 @@ import storage_pb2_grpc
 import storage_pb2
 
 
-## Wasmtime Embedding
+# Wasmtime Embedding
 store = wasmtime.Store()
-
 
 linker = wasmtime.Linker(store)
 wasi_config = wasmtime.WasiConfig()
@@ -53,36 +52,36 @@ def copy_memory(sdata: bytearray):
     ptr = alloc(len(sdata))
 
     # cast pointer to int32 (even though it's not int32)
-    ptr32 = int(ptr)
+    ptr_int = int(ptr)
 
     for i, v in enumerate(sdata):
-        memory.data_ptr[ptr32 + i] = v
+        memory.data_ptr[ptr_int + i] = v
 
-    return ptr32
+    return ptr_int
 
 
 # call_function handles all the calls the desired function
 # and handles alloc/dealloc
-def call_function(fn, bytes_as_string):
+def call_function(func, bytes_as_string):
     ptr = copy_memory(bytes_as_string)
     length = len(bytes_as_string)
 
-    res_ptr = fn(ptr, length)
-    res_ptr32 = int(res_ptr)
+    result_ptr = func(ptr, length)
+    res_ptr_int = int(result_ptr)
 
     # deallocate request protobuf message
     dealloc(ptr, length)
 
     result_len = get_len()
-    int_res_len = int(result_len)
+    res_len_int = int(result_len)
 
-    response = bytearray(int_res_len)
+    response = bytearray(res_len_int)
 
-    for i in range(int_res_len):
-        response[i] = memory.data_ptr[res_ptr32+i]
+    for i in range(res_len_int):
+        response[i] = memory.data_ptr[res_ptr_int+i]
 
     # deallocate response protobuf message
-    dealloc(res_ptr32, int_res_len)
+    dealloc(res_ptr_int, res_len_int)
 
     return response
 
@@ -104,6 +103,7 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
         return_message = storage_pb2.WriteResponse()
         return_message.ParseFromString(response)
         return return_message
+
 
 class Server:
     # Initialize gRPC server
