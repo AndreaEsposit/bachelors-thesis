@@ -13,19 +13,19 @@ namespace DotNetServer.Services
 {
 
     // Singleton pattern to create only one instance of the Wasm Instance
-    public sealed class StorageSingleton
+    public sealed class WasmSingleton
     {
-        private static StorageSingleton _instance; //tells us where we actaully saved the the object
+        private static WasmSingleton _instance; // tells us where we actaully saved the the object
 
-        private StorageSingleton() { }
-        public static StorageSingleton Instance
+        private WasmSingleton() { }
+        public static WasmSingleton Instance
 
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = new StorageSingleton();
+                    _instance = new WasmSingleton();
 
                 }
 
@@ -33,20 +33,24 @@ namespace DotNetServer.Services
             }
         }
 
-        public bool fatto = false;
-        public dynamic wasm;
+        // this keeps truck of
+        public bool instanceReady = false;
+
+        // our wasm instance that gets made with lazy initialization 
+        public Instance wasm;
+        public Wasmtime.Externs.ExternMemory memory;
     }
     public class StorageService : Storage.StorageBase
     {
         private readonly ILogger<StorageService> _logger;
 
-        private StorageSingleton storageSingleton = StorageSingleton.Instance;
+        private WasmSingleton wasmSingleton = WasmSingleton.Instance;
 
 
         public StorageService(ILogger<StorageService> logger)
         {
 
-            if (!storageSingleton.fatto)
+            if (!wasmSingleton.instanceReady)
             {
                 _logger = logger;
                 using var engine = new Engine();
@@ -65,101 +69,11 @@ namespace DotNetServer.Services
                 ((dynamic)instance)._initialize();
 
 
-                storageSingleton.wasm = instance;
-                storageSingleton.fatto = true;
+                wasmSingleton.wasm = instance;
+                wasmSingleton.memory = memory;
+                wasmSingleton.instanceReady = true;
 
                 Console.WriteLine("Instance ready");
-
-
-                // write test 
-
-                // var message = new WriteRequest();
-
-                // message.Value = "This is incredibly top secret data!";
-                // message.Timestamp = DateTime.UtcNow.ToTimestamp();
-                // message.FileName = "Sparta";
-
-                // var bytes = message.ToByteArray();
-
-                // var ptr = ((dynamic)instance).new_alloc(bytes.Length);
-
-                // Console.WriteLine($"I got here and this is the ptr: {ptr}");
-
-                // bytes.CopyTo(memory.Span[ptr..]);
-
-                // var len = bytes.Length;
-
-                // // Console.WriteLine("I got here");
-
-                // var write = instance.Functions.Where(f => f.Name == "store_data").First();
-
-                // //var resptr = ((dynamic)instance).store_data(ptr, len);
-
-                // var resptr = write.Invoke(ptr, len);
-
-                // ((dynamic)instance).new_dealloc(ptr, len);
-
-                // var resultLen = ((dynamic)instance).get_response_len();
-
-                // var result = new byte[resultLen];
-
-                // var memResult = memory.Span[resptr..(resptr + resultLen)];
-
-                // memResult.CopyTo(result);
-
-                // WriteResponse resMessage;
-
-                // resMessage = WriteResponse.Parser.ParseFrom(result);
-
-                // Console.WriteLine($"This is the status of message: {resMessage.Ok}");
-
-                // ((dynamic)instance).new_dealloc(resptr, resultLen);
-
-
-
-                // read test 
-
-                var message = new ReadRequest();
-                message.FileName = "Sparta";
-
-
-
-                var bytes = message.ToByteArray();
-
-                var ptr = ((dynamic)instance).new_alloc(bytes.Length);
-
-                Console.WriteLine($"I got here and this is the ptr: {ptr}");
-
-                bytes.CopyTo(memory.Span[ptr..]);
-
-                var len = bytes.Length;
-
-                // Console.WriteLine("I got here");
-
-                var read = instance.Functions.Where(f => f.Name == "read_data").First();
-
-                //var resptr = ((dynamic)instance).store_data(ptr, len);
-
-                var resptr = read.Invoke(ptr, len);
-
-                ((dynamic)instance).new_dealloc(ptr, len);
-
-                var resultLen = ((dynamic)instance).get_response_len();
-
-                var result = new byte[resultLen];
-
-                var memResult = memory.Span[resptr..(resptr + resultLen)];
-
-                memResult.CopyTo(result);
-
-                ReadResponse resMessage;
-
-                resMessage = ReadResponse.Parser.ParseFrom(result);
-
-                Console.WriteLine($"This is the value of message: {resMessage.Value}");
-                Console.WriteLine($"This is the time of message: {resMessage.Timestamp}");
-
-                ((dynamic)instance).new_dealloc(resptr, resultLen);
 
 
             }
@@ -169,29 +83,88 @@ namespace DotNetServer.Services
 
         public override Task<ReadResponse> Read(ReadRequest request, ServerCallContext context)
         {
-            //storageSingleton.wasm.store_data();
-            ReadResponse output = new ReadResponse();
 
-            if (request.FileName == "ImportantData")
-            {
-                output.Value = "This is incredibly top secret data!";
-                output.Ok = 1;
-                output.Timestamp = DateTime.UtcNow.ToTimestamp();
-            }
-            else
-            {
-                output.Value = "¨Not very important data";
-                output.Ok = 1;
-                output.Timestamp = DateTime.UtcNow.ToTimestamp();
-            }
+            var bytes = request.ToByteArray();
 
-            return Task.FromResult(output);
+            var ptr = ((dynamic)wasmSingleton.wasm).new_alloc(bytes.Length);
+
+            Console.WriteLine($"I got here and this is the ptr: {ptr}");
+
+            bytes.CopyTo(wasmSingleton.memory.Span[ptr..]);
+
+            var len = bytes.Length;
+
+
+            var write = wasmSingleton.wasm.Functions.Where(f => f.Name == "read_data").First();
+
+            //var resptr = ((dynamic)instance).store_data(ptr, len);
+
+            var resptr = write.Invoke(ptr, len);
+
+            ((dynamic)wasmSingleton.wasm).new_dealloc(ptr, len);
+
+            var resultLen = ((dynamic)wasmSingleton.wasm).get_response_len();
+
+            var result = new byte[resultLen];
+
+            var memResult = wasmSingleton.memory.Span[resptr..(resptr + resultLen)];
+
+            memResult.CopyTo(result);
+
+            ReadResponse resMessage;
+
+            resMessage = ReadResponse.Parser.ParseFrom(result);
+
+            Console.WriteLine($"This is the value of message: {resMessage.Value}");
+            Console.WriteLine($"This is the time of message: {resMessage.Timestamp}");
+
+            ((dynamic)wasmSingleton.wasm).new_dealloc(resptr, resultLen);
+
+
+            return Task.FromResult(resMessage);
 
         }
 
         public override Task<WriteResponse> Write(WriteRequest request, ServerCallContext context)
         {
-            return base.Write(request, context);
+
+            var bytes = request.ToByteArray();
+
+            var ptr = ((dynamic)wasmSingleton.wasm).new_alloc(bytes.Length);
+
+            Console.WriteLine($"I got here and this is the ptr: {ptr}");
+
+            bytes.CopyTo(wasmSingleton.memory.Span[ptr..]);
+
+            var len = bytes.Length;
+
+            // Console.WriteLine("I got here");
+
+            var write = wasmSingleton.wasm.Functions.Where(f => f.Name == "store_data").First();
+
+            //var resptr = ((dynamic)instance).store_data(ptr, len);
+
+            var resptr = write.Invoke(ptr, len);
+
+            ((dynamic)wasmSingleton.wasm).new_dealloc(ptr, len);
+
+            var resultLen = ((dynamic)wasmSingleton.wasm).get_response_len();
+
+            var result = new byte[resultLen];
+
+            var memResult = wasmSingleton.memory.Span[resptr..(resptr + resultLen)];
+
+            memResult.CopyTo(result);
+
+            WriteResponse resMessage;
+
+            resMessage = WriteResponse.Parser.ParseFrom(result);
+
+            Console.WriteLine($"This is the status of message: {resMessage.Ok}");
+
+            ((dynamic)wasmSingleton.wasm).new_dealloc(resptr, resultLen);
+
+            return Task.FromResult(resMessage);
         }
     }
 }
