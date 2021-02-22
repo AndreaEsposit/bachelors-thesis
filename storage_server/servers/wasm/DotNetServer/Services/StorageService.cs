@@ -43,7 +43,7 @@ namespace DotNetServer.Services
         // keeps track of the functions used by the applicaion (no alloc, dealloc etc..)
         public Dictionary<String, Wasmtime.Externs.ExternFunction> funcs;
 
-        public byte[] callFunction(String fn, IMessage message)
+        public IMessage callFunction<T>(String fn, IMessage message) where T : IMessage<T>, new()
         {
             // --- Copy the buffer to the module's memory 
             var bytes = message.ToByteArray();
@@ -76,7 +76,16 @@ namespace DotNetServer.Services
             // deallocate repsonse protobud message form Wasmtime's memory
             ((dynamic)wasm).new_dealloc(resPtr, resultLen);
 
-            return result;
+            message = parse<T>(result);
+
+            return message;
+        }
+
+        // generic parser
+        private IMessage parse<T>(byte[] buf) where T : IMessage<T>, new()
+        {
+            MessageParser<T> parser = new MessageParser<T>(() => new T());
+            return parser.ParseFrom(buf);
         }
     }
     public class StorageService : Storage.StorageBase
@@ -137,26 +146,17 @@ namespace DotNetServer.Services
 
         public override Task<ReadResponse> Read(ReadRequest request, ServerCallContext context)
         {
-
-            var result = wasmSingleton.callFunction("read", request);
-
-            ReadResponse resMessage;
-            resMessage = ReadResponse.Parser.ParseFrom(result);
+            var result = wasmSingleton.callFunction<ReadResponse>("read", request);
             // Console.WriteLine($"This is the value of message: {resMessage.Value}");
             // Console.WriteLine($"This is the time of message: {resMessage.Timestamp}");
-            return Task.FromResult(resMessage);
-
+            return Task.FromResult(result as ReadResponse);
         }
 
         public override Task<WriteResponse> Write(WriteRequest request, ServerCallContext context)
         {
-
-            var result = wasmSingleton.callFunction("write", request);
-
-            WriteResponse resMessage;
-            resMessage = WriteResponse.Parser.ParseFrom(result);
+            var result = wasmSingleton.callFunction<WriteResponse>("write", request);
             //Console.WriteLine($"This is the status of message: {resMessage.Ok}");
-            return Task.FromResult(resMessage);
+            return Task.FromResult(result as WriteResponse);
         }
     }
 }
