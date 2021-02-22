@@ -108,13 +108,13 @@ func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, 
 
 // Read will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Read(ctx context.Context, message *pb.ReadRequest) (*pb.ReadResponse, error) {
-	wasmResponse := server.callFunction("read", message, &pb.ReadResponse{})
+	wasmResponse := server.callWasm("read", message, &pb.ReadResponse{})
 	return wasmResponse.(*pb.ReadResponse), nil
 }
 
 // Write will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Write(ctx context.Context, message *pb.WriteRequest) (*pb.WriteResponse, error) {
-	wasmResponse := server.callFunction("write", message, &pb.WriteResponse{})
+	wasmResponse := server.callWasm("write", message, &pb.WriteResponse{})
 	return wasmResponse.(*pb.WriteResponse), nil
 }
 
@@ -143,8 +143,8 @@ func (server *StorageServer) copyMemory(data []byte) int32 {
 	return ptr32
 }
 
-// callFunction handles the actuall wasm function call, and takes care of all calls to alloc/dialloc in the wasm instance
-func (server *StorageServer) callFunction(fn string, requestMessage proto.Message, responseMessage proto.Message) proto.Message {
+// callWasm handles the actuall wasm function call, and takes care of all calls to alloc/dialloc in the wasm instance
+func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, responseMessage proto.Message) proto.Message {
 	recivedBytes, err := proto.Marshal(requestMessage)
 	check(err)
 

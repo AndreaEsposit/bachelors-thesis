@@ -60,8 +60,8 @@ def copy_memory(sdata: bytearray):
     return ptr_int
 
 
-# call_function handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
-def call_function(func, request, return_message):
+# call_wasm handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
+def call_wasm(func, request, return_message):
     bytes_as_string = request.SerializeToString()
     ptr = copy_memory(bytes_as_string)
     length = len(bytes_as_string)
@@ -94,12 +94,12 @@ def call_function(func, request, return_message):
 class StorageServicer(storage_pb2_grpc.StorageServicer):
 
     def Read(self, request, context):
-        return_message = call_function(
+        return_message = call_wasm(
             read, request, storage_pb2.ReadResponse())
         return return_message
 
     def Write(self, request, context):
-        return_message = call_function(
+        return_message = call_wasm(
             write, request, storage_pb2.WriteResponse())
         return return_message
 
