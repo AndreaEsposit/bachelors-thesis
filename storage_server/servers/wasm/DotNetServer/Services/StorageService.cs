@@ -43,7 +43,7 @@ namespace DotNetServer.Services
         // keeps track of the functions used by the applicaion (no alloc, dealloc etc..)
         public Dictionary<String, Wasmtime.Externs.ExternFunction> funcs;
 
-        public IMessage callWasm<T>(String fn, IMessage message) where T : IMessage<T>, new()
+        public T callWasm<T>(String fn, IMessage message) where T : IMessage<T>, new()
         {
             // --- Copy the buffer to the module's memory 
             var bytes = message.ToByteArray();
@@ -78,7 +78,7 @@ namespace DotNetServer.Services
 
             message = parse<T>(result);
 
-            return message;
+            return message is T value ? value : default(T);
         }
 
         // generic parser
@@ -149,14 +149,14 @@ namespace DotNetServer.Services
             var result = wasmSingleton.callWasm<ReadResponse>("read", request);
             // Console.WriteLine($"This is the value of message: {resMessage.Value}");
             // Console.WriteLine($"This is the time of message: {resMessage.Timestamp}");
-            return Task.FromResult(result as ReadResponse);
+            return Task.FromResult(result);
         }
 
         public override Task<WriteResponse> Write(WriteRequest request, ServerCallContext context)
         {
             var result = wasmSingleton.callWasm<WriteResponse>("write", request);
             //Console.WriteLine($"This is the status of message: {resMessage.Ok}");
-            return Task.FromResult(result as WriteResponse);
+            return Task.FromResult(result);
         }
     }
 }
