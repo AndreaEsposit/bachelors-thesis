@@ -62,7 +62,8 @@ def copy_memory(sdata: bytearray):
 
 # call_function handles all the calls the desired function
 # and handles alloc/dealloc
-def call_function(func, bytes_as_string):
+def call_function(func, request, return_message):
+    bytes_as_string = request.SerializeToString()
     ptr = copy_memory(bytes_as_string)
     length = len(bytes_as_string)
 
@@ -83,7 +84,10 @@ def call_function(func, bytes_as_string):
     # deallocate response protobuf message
     dealloc(res_ptr_int, res_len_int)
 
-    return response
+    # parse response to a protobuf message
+    return_message.ParseFromString(response)
+
+    return return_message
 
 
 # create a class to define the server functions, derived
@@ -91,17 +95,13 @@ def call_function(func, bytes_as_string):
 class StorageServicer(storage_pb2_grpc.StorageServicer):
 
     def Read(self, request, context):
-        message = request.SerializeToString()
-        response = call_function(read, message)
-        return_message = storage_pb2.ReadResponse()
-        return_message.ParseFromString(response)
+        return_message = call_function(
+            read, request, storage_pb2.ReadResponse())
         return return_message
 
     def Write(self, request, context):
-        message = request.SerializeToString()
-        response = call_function(write, message)
-        return_message = storage_pb2.WriteResponse()
-        return_message.ParseFromString(response)
+        return_message = call_function(
+            write, request, storage_pb2.WriteResponse())
         return return_message
 
 
