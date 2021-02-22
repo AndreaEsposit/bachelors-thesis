@@ -60,8 +60,7 @@ def copy_memory(sdata: bytearray):
     return ptr_int
 
 
-# call_function handles all the calls the desired function
-# and handles alloc/dealloc
+# call_function handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
 def call_function(func, request, return_message):
     bytes_as_string = request.SerializeToString()
     ptr = copy_memory(bytes_as_string)

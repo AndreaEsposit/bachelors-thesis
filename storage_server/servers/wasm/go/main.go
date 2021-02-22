@@ -143,7 +143,7 @@ func (server *StorageServer) copyMemory(data []byte) int32 {
 	return ptr32
 }
 
-// callFunction handles all the calls the desired function and handles alloc/dialloc
+// callFunction handles the actuall wasm function call, and takes care of all calls to alloc/dialloc in the wasm instance
 func (server *StorageServer) callFunction(fn string, requestMessage proto.Message, responseMessage proto.Message) proto.Message {
 	recivedBytes, err := proto.Marshal(requestMessage)
 	check(err)
