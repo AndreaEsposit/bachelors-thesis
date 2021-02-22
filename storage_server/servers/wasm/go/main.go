@@ -108,26 +108,14 @@ func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, 
 
 // Read will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Read(ctx context.Context, message *pb.ReadRequest) (*pb.ReadResponse, error) {
-	wasmResponse := server.callFunction("read", message)
-
-	returnMessage := &pb.ReadResponse{}
-	if err := proto.Unmarshal(wasmResponse, returnMessage); err != nil {
-		log.Fatalln("Failed to parse message: ", err)
-	}
-
-	return returnMessage, nil
+	wasmResponse := server.callFunction("read", message, &pb.ReadResponse{})
+	return wasmResponse.(*pb.ReadResponse), nil
 }
 
 // Write will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Write(ctx context.Context, message *pb.WriteRequest) (*pb.WriteResponse, error) {
-	wasmResponse := server.callFunction("write", message)
-
-	returnMessage := &pb.WriteResponse{}
-	if err := proto.Unmarshal(wasmResponse, returnMessage); err != nil {
-		log.Fatalln("Failed to parse message: ", err)
-	}
-
-	return returnMessage, nil
+	wasmResponse := server.callFunction("write", message, &pb.WriteResponse{})
+	return wasmResponse.(*pb.WriteResponse), nil
 }
 
 func check(err error) {
@@ -156,8 +144,8 @@ func (server *StorageServer) copyMemory(data []byte) int32 {
 }
 
 // callFunction handles all the calls the desired function and handles alloc/dialloc
-func (server *StorageServer) callFunction(fn string, message proto.Message) (response []byte) {
-	recivedBytes, err := proto.Marshal(message)
+func (server *StorageServer) callFunction(fn string, requestMessage proto.Message, responseMessage proto.Message) proto.Message {
+	recivedBytes, err := proto.Marshal(requestMessage)
 	check(err)
 
 	// lock access to the server (extra security)
@@ -180,7 +168,7 @@ func (server *StorageServer) callFunction(fn string, message proto.Message) (res
 	intResLen := resultLen.(int32)
 
 	buf := server.memory.UnsafeData()
-	response = make([]byte, int(intResLen))
+	response := make([]byte, int(intResLen))
 	for i := range response {
 		response[i] = buf[resPtr32+int32(i)]
 	}
@@ -188,5 +176,11 @@ func (server *StorageServer) callFunction(fn string, message proto.Message) (res
 	// deallocate response protobuf message
 	_, err = server.funcs["dealloc"].Call(resPtr32, intResLen)
 	check(err)
-	return response
+
+	// unmarshalling
+	if err := proto.Unmarshal(response, responseMessage); err != nil {
+		log.Fatalln("Failed to parse message: ", err)
+	}
+
+	return responseMessage
 }
