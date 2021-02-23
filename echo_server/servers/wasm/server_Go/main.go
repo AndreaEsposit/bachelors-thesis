@@ -99,7 +99,7 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	ptr := server.copyMemory(recivedBytes)
+	ptr := server.copyToMemory(recivedBytes)
 
 	newPtr, err := server.funcs["echo"].Call(ptr, int32(len(recivedBytes)))
 	check(err)
@@ -140,7 +140,7 @@ func check(err error) {
 	}
 }
 
-func (server *EchoServer) copyMemory(data []byte) int32 {
+func (server *EchoServer) copyToMemory(data []byte) int32 {
 
 	// allocate memory in wasm
 	ptr, err := server.funcs["alloc"].Call(int32(len(data)))

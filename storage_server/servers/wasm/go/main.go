@@ -124,8 +124,8 @@ func check(err error) {
 	}
 }
 
-// copyMemory handles the copy of serialized data to the Wasm's memory
-func (server *StorageServer) copyMemory(data []byte) int32 {
+// copyToMemory handles the copy of serialized data to the Wasm's memory
+func (server *StorageServer) copyToMemory(data []byte) int32 {
 
 	// allocate memory in wasm
 	ptr, err := server.funcs["alloc"].Call(int32(len(data)))
@@ -152,7 +152,7 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	ptr := server.copyMemory(recivedBytes)
+	ptr := server.copyToMemory(recivedBytes)
 	len := int32(len(recivedBytes))
 
 	resPtr, err := server.funcs[fn].Call(ptr, len)

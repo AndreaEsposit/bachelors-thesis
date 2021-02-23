@@ -45,9 +45,9 @@ grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
 
-# copy_mem handles the copy of serialized data to the
+# copy_to_mem handles the copy of serialized data to the
 # Wasm's memory
-def copy_memory(sdata: bytearray):
+def copy_to_memory(sdata: bytearray):
     # allocate memory in wasm
     ptr = alloc(len(sdata))
 
@@ -63,7 +63,7 @@ def copy_memory(sdata: bytearray):
 # call_wasm handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
 def call_wasm(func, request, return_message):
     bytes_as_string = request.SerializeToString()
-    ptr = copy_memory(bytes_as_string)
+    ptr = copy_to_memory(bytes_as_string)
     length = len(bytes_as_string)
 
     result_ptr = func(ptr, length)
