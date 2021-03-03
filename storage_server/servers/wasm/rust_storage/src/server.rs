@@ -50,7 +50,6 @@ impl Storage for MyStorage {
         let res = request.into_inner();
         let replay = self.handle.get_write_response(res).await;
 
-        println!("{:?}", replay);
         Ok(Response::new(replay))
     }
 }
@@ -213,7 +212,6 @@ impl WasmActor {
                 //let r: proto::ReadRequest = prost::Message::decode(buf).unwrap();
                 let bytes_vec: Vec<u8> = buf.to_vec();
                 let result = self.call_func("write", bytes_vec);
-
                 let buf = &result[..];
 
                 let response: proto::WriteResponse = prost::Message::decode(buf).unwrap();
@@ -242,8 +240,6 @@ impl WasmActor {
     fn call_func(&mut self, f_name: &str, data: Vec<u8>) -> Vec<u8> {
         let (ptr, len) = self.copy_to_memory(data);
 
-        println!("{:?}", ptr);
-
         let func = self.funcs[f_name]
             .get2::<i32, i32, i32>()
             .expect("error converting `f` function");
@@ -262,7 +258,8 @@ impl WasmActor {
 
         let result_len = get_len().expect("soemthing went wrong calling get_len");
 
-        let mut buf: Vec<u8> = vec![0, result_len as u8];
+        // create a buffer
+        let mut buf: Vec<u8> = vec![0_u8; result_len as usize];
         let b: &mut [u8] = &mut buf[..];
 
         let write_result = self.memory.read(res_ptr as usize, b);
