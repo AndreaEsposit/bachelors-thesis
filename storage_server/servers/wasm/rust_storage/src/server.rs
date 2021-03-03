@@ -70,7 +70,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // this is just a precoution to see if the WasmActor is ready
     let status = handle.ready_to_use().await;
-    println!("Actor status: {:?}", status);
+    println!("WasmActor status: {:?}", status);
+    if status == 1 {
+        println!("WasmActor ready")
+    }
 
     // ---------
 
@@ -86,14 +89,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// This struct takes care of the Wasm instance
-struct WasmActor {
-    receiver: mpsc::Receiver<ActorMessage>,
-    funcs: HashMap<String, wasmtime::Func>,
-    memory: wasmtime::Memory,
-}
-
+// ActorMessage enum is used to specify how you want to interact with the actor
 enum ActorMessage {
+    // ReadyToUse is used to send a message when the actor has been initialised
     ReadyToUse {
         respond_to: oneshot::Sender<i32>,
     },
@@ -107,7 +105,16 @@ enum ActorMessage {
     },
 }
 
+// WasmActor struct takes care of the Wasm instance and Wasm exported functions
+struct WasmActor {
+    receiver: mpsc::Receiver<ActorMessage>,
+    funcs: HashMap<String, wasmtime::Func>,
+    memory: wasmtime::Memory,
+}
+
+// WasmActor implementation
 impl WasmActor {
+    // new initializes the WasmActor, initializing the Wasm instance
     fn new(receiver: mpsc::Receiver<ActorMessage>, dir: Dir) -> Self {
         let engine = wasmtime::Engine::default();
         let store = wasmtime::Store::new(&engine);
@@ -177,14 +184,14 @@ impl WasmActor {
         }
     }
 
+    // handle_message handles any type of request. Request types behaviour has to be specified
     fn handle_message(&mut self, msg: ActorMessage) {
         match msg {
             ActorMessage::ReadyToUse { respond_to } => {
-                // The `let _ =` ignores any errors w bbhen sending.
+                // The `let _ =` ignores any errors when sending.
                 //
                 // This can happen if the `select!` macro is used
                 // to cancel waiting for the response.
-
                 let _ = respond_to.send(1);
             }
             ActorMessage::Read {
@@ -195,7 +202,7 @@ impl WasmActor {
                 request.encode(&mut buf).unwrap();
                 //let r: proto::ReadRequest = prost::Message::decode(buf).unwrap();
                 let bytes_vec: Vec<u8> = buf.to_vec();
-                let result = self.call_func("read", bytes_vec);
+                let result = self.call_wasm("read", bytes_vec);
 
                 let buf = &result[..];
 
@@ -211,7 +218,7 @@ impl WasmActor {
                 request.encode(&mut buf).unwrap();
                 //let r: proto::ReadRequest = prost::Message::decode(buf).unwrap();
                 let bytes_vec: Vec<u8> = buf.to_vec();
-                let result = self.call_func("write", bytes_vec);
+                let result = self.call_wasm("write", bytes_vec);
                 let buf = &result[..];
 
                 let response: proto::WriteResponse = prost::Message::decode(buf).unwrap();
@@ -220,6 +227,7 @@ impl WasmActor {
             }
         }
     }
+    // copy_to_memory handles the copy of serialized data to the Wasm's memory
     fn copy_to_memory(&mut self, data: Vec<u8>) -> (i32, i32) {
         let data = &data[..];
         let size = data.len();
@@ -227,8 +235,10 @@ impl WasmActor {
             .get1::<i32, i32>()
             .expect("error converting alloc function");
 
+        // allocate memory in wasm
         let ptr = alloc(size as i32).expect("something went wrong calling alloc");
 
+        // write to memory
         let result = self.memory.write(ptr as usize, data);
         match result {
             Ok(result) => result,
@@ -237,7 +247,8 @@ impl WasmActor {
         (ptr, size as i32)
     }
 
-    fn call_func(&mut self, f_name: &str, data: Vec<u8>) -> Vec<u8> {
+    // call_wasm handles the actuall wasm function call, and takes care of all calls to alloc/dialloc in the wasm instance
+    fn call_wasm(&mut self, f_name: &str, data: Vec<u8>) -> Vec<u8> {
         let (ptr, len) = self.copy_to_memory(data);
 
         let func = self.funcs[f_name]
@@ -254,12 +265,14 @@ impl WasmActor {
 
         let res_ptr = func(ptr, len).expect("something went wrong calling the `f` function");
 
+        // deallocate request protobuf message
         let _ = w_deadlloc(ptr, len);
 
-        let result_len = get_len().expect("soemthing went wrong calling get_len");
+        let result_len = get_len().expect("soemthing went wrong calling the get_len function");
 
         // create a buffer
         let mut buf: Vec<u8> = vec![0_u8; result_len as usize];
+        //let mut buf = Vec::with_capacity(result_len as usize);
         let b: &mut [u8] = &mut buf[..];
 
         let write_result = self.memory.read(res_ptr as usize, b);
@@ -269,11 +282,13 @@ impl WasmActor {
             Err(e) => panic!("Error at write {}", e),
         };
 
+        // deallocate response protobuf message
         let _ = w_deadlloc(res_ptr, result_len);
         buf
     }
 }
 
+// run_my_actor runs the actor until it fails or program ends
 fn run_my_actor(mut actor: WasmActor) {
     while let Some(msg) = actor.receiver.blocking_recv() {
         actor.handle_message(msg);
@@ -298,7 +313,6 @@ impl WasmHandle {
     pub async fn ready_to_use(&self) -> i32 {
         let (send, recv) = oneshot::channel();
         let msg = ActorMessage::ReadyToUse { respond_to: send };
-
         // Ignore send errors. If this send fails, so does the
         // recv.await below. There's no reason to check for the
         // same failure twice.
@@ -312,10 +326,6 @@ impl WasmHandle {
             respond_to: send,
             request,
         };
-
-        // Ignore send errors. If this send fails, so does the
-        // recv.await below. There's no reason to check for the
-        // same failure twice.
         let _ = self.sender.send(msg).await;
         recv.await.expect("Actor task has been killed")
     }
@@ -326,10 +336,6 @@ impl WasmHandle {
             respond_to: send,
             request,
         };
-
-        // Ignore send errors. If this send fails, so does the
-        // recv.await below. There's no reason to check for the
-        // same failure twice.
         let _ = self.sender.send(msg).await;
         recv.await.expect("Actor task has been killed")
     }
