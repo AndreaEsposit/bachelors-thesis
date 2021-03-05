@@ -89,8 +89,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// ActorMessage enum is used to specify how you want to interact with the actor
-enum ActorMessage {
+// ActorRequest enum is used to specify how you want to interact with the actor
+enum ActorRequest {
     // ReadyToUse is used to send a message when the actor has been initialised
     ReadyToUse {
         respond_to: oneshot::Sender<i32>,
@@ -107,7 +107,7 @@ enum ActorMessage {
 
 // WasmActor struct takes care of the Wasm instance and Wasm exported functions
 struct WasmActor {
-    receiver: mpsc::Receiver<ActorMessage>,
+    receiver: mpsc::Receiver<ActorRequest>,
     funcs: HashMap<String, wasmtime::Func>,
     memory: wasmtime::Memory,
 }
@@ -115,7 +115,7 @@ struct WasmActor {
 // WasmActor implementation
 impl WasmActor {
     // new initializes the WasmActor, initializing the Wasm instance
-    fn new(receiver: mpsc::Receiver<ActorMessage>, dir: Dir) -> Self {
+    fn new(receiver: mpsc::Receiver<ActorRequest>, dir: Dir) -> Self {
         let engine = wasmtime::Engine::default();
         let store = wasmtime::Store::new(&engine);
         let mut linker = wasmtime::Linker::new(&store);
@@ -184,17 +184,17 @@ impl WasmActor {
         }
     }
 
-    // handle_message handles any type of request. Request types behaviour has to be specified
-    fn handle_message(&mut self, msg: ActorMessage) {
+    // handle_request handles any type of request. Request types behaviour has to be specified
+    fn handle_request(&mut self, msg: ActorRequest) {
         match msg {
-            ActorMessage::ReadyToUse { respond_to } => {
+            ActorRequest::ReadyToUse { respond_to } => {
                 // The `let _ =` ignores any errors when sending.
                 //
                 // This can happen if the `select!` macro is used
                 // to cancel waiting for the response.
                 let _ = respond_to.send(1);
             }
-            ActorMessage::Read {
+            ActorRequest::Read {
                 respond_to,
                 request,
             } => {
@@ -206,11 +206,12 @@ impl WasmActor {
 
                 let buf = &result[..];
 
-                let response: proto::ReadResponse = prost::Message::decode(buf).unwrap();
+                let response: proto::ReadResponse;
+                response = prost::Message::decode(buf).unwrap();
 
                 let _ = respond_to.send(response);
             }
-            ActorMessage::Write {
+            ActorRequest::Write {
                 respond_to,
                 request,
             } => {
@@ -291,13 +292,13 @@ impl WasmActor {
 // run_my_actor runs the actor until it fails or program ends
 fn run_my_actor(mut actor: WasmActor) {
     while let Some(msg) = actor.receiver.blocking_recv() {
-        actor.handle_message(msg);
+        actor.handle_request(msg);
     }
 }
 
 #[derive(Clone)]
 pub struct WasmHandle {
-    sender: mpsc::Sender<ActorMessage>,
+    sender: mpsc::Sender<ActorRequest>,
 }
 
 impl WasmHandle {
@@ -312,7 +313,7 @@ impl WasmHandle {
 
     pub async fn ready_to_use(&self) -> i32 {
         let (send, recv) = oneshot::channel();
-        let msg = ActorMessage::ReadyToUse { respond_to: send };
+        let msg = ActorRequest::ReadyToUse { respond_to: send };
         // Ignore send errors. If this send fails, so does the
         // recv.await below. There's no reason to check for the
         // same failure twice.
@@ -322,7 +323,7 @@ impl WasmHandle {
 
     pub async fn get_write_response(&self, request: WriteRequest) -> WriteResponse {
         let (send, recv) = oneshot::channel();
-        let msg = ActorMessage::Write {
+        let msg = ActorRequest::Write {
             respond_to: send,
             request,
         };
@@ -332,7 +333,7 @@ impl WasmHandle {
 
     pub async fn get_read_response(&self, request: ReadRequest) -> ReadResponse {
         let (send, recv) = oneshot::channel();
-        let msg = ActorMessage::Read {
+        let msg = ActorRequest::Read {
             respond_to: send,
             request,
         };
