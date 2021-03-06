@@ -18,9 +18,9 @@ type StorageServer struct {
 }
 
 type Data struct {
-	seconds  int64
-	nseconds int32
-	value    string
+	Seconds  int64  `json:"seconds"`
+	Nseconds int32  `json:"nseconds"`
+	Value    string `json:"value"`
 }
 
 // NewStorageServer initializes an EchoServer
@@ -46,19 +46,20 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	file := filename + ".json"
 
 	data := Data{
-		seconds:  timestamp.Seconds,
-		nseconds: timestamp.Nanos,
-		value:    val}
+		Seconds:  timestamp.Seconds,
+		Nseconds: timestamp.Nanos,
+		Value:    val,
+	}
 
-	// serialized values from a struct and write them to a file in pretty JSON format
+	// encode as json in pretty format
 	b, err := json.MarshalIndent(data, "", "	")
 	check(err)
-	fmt.Println(data)
 	fmt.Println(string(b))
 
 	// write to file
-	writeResult := ioutil.WriteFile(file, b, 0644)
-	check(writeResult)
+	result := ioutil.WriteFile(file, b, 0644)
+	check(result)
+	fmt.Println("Write to json successful!")
 
 	// return response
 	response := &pb.WriteResponse{
