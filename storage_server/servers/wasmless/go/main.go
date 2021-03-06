@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"os"
 
 	pb "github.com/AndreaEsposit/practice/storage_server/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type StorageServer struct {
@@ -31,11 +33,36 @@ func NewStorageServer() *StorageServer {
 }
 
 func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) (*pb.ReadResponse, error) {
-	// filename := request.FileName
-	// fpath := "./data/" + filename + ".json"
-	// file, err := os.Open(fpath)
-	// check(err)
-	return &pb.ReadResponse{}, nil
+	filename := request.FileName
+	file := "./data/" + filename + ".json"
+
+	// defining a struct instance
+	var data Data
+
+	f, err := os.Open(file)
+	check(err)
+	defer f.Close()
+
+	content, _ := ioutil.ReadAll(f)
+
+	// decoding data struct
+	// from json format
+	e := json.Unmarshal(content, &data)
+	check(e)
+
+	timestamp := timestamppb.Timestamp{
+		Seconds: data.Seconds,
+		Nanos:   data.Nseconds,
+	}
+
+	// return response
+	response := &pb.ReadResponse{
+		Value:     data.Value,
+		Timestamp: &timestamp,
+		Ok:        1,
+	}
+
+	return response, nil
 }
 
 func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest) (*pb.WriteResponse, error) {
@@ -57,7 +84,7 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	fmt.Println(string(b))
 
 	// write to file
-	result := ioutil.WriteFile(file, b, 0644)
+	result := ioutil.WriteFile("./data/"+file, b, 0644)
 	check(result)
 	fmt.Println("Write to json successful!")
 
