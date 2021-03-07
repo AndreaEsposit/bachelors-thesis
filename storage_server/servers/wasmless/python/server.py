@@ -25,16 +25,21 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
         # load JSON file
         with open(filepath) as f:
             data = json.load(f)
-        print(data)
 
-        return storage_pb2.ReadResponse()
+        val = data["value"]
+        timestamp = {
+            "seconds" : data["seconds"],
+            "nanos" : data["nseconds"]
+        }
+
+        return storage_pb2.ReadResponse(Value=val, Timestamp=timestamp, Ok=1)
 
     def Write(self, request, context):
         filename = request.FileName
         timestamp = request.Timestamp
         val = request.Value
 
-        path = Path(__file__).parent
+        path = Path(__file__).parent / "./data"
         print(path)
 
         filepath = str(path) + filename + ".json"

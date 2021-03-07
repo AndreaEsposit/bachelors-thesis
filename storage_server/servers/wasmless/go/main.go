@@ -47,8 +47,9 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 
 	// decoding data struct
 	// from json format
-	e := json.Unmarshal(content, &data)
-	check(e)
+	if e := json.Unmarshal(content, &data); e != nil {
+		log.Fatalln("Failed to parse message: ", err)
+	}
 
 	timestamp := timestamppb.Timestamp{
 		Seconds: data.Seconds,
