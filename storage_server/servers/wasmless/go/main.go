@@ -40,30 +40,40 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 	var data Data
 
 	f, err := os.Open(file)
-	check(err)
 	defer f.Close()
+	var response = pb.ReadResponse{}
+	if os.IsNotExist(err) {
+		timestamp := timestamppb.Timestamp{
+			Seconds: 0,
+			Nanos:   0,
+		}
 
-	content, _ := ioutil.ReadAll(f)
+		// return response
+		response.Value = ""
+		response.Timestamp = &timestamp
+		response.Ok = 0
 
-	// decoding data struct
-	// from json format
-	if e := json.Unmarshal(content, &data); e != nil {
-		log.Fatalln("Failed to parse message: ", err)
+	} else {
+		content, _ := ioutil.ReadAll(f)
+
+		// decoding data struct
+		// from json format
+		if e := json.Unmarshal(content, &data); e != nil {
+			log.Fatalln("Failed to parse message: ", err)
+		}
+
+		timestamp := timestamppb.Timestamp{
+			Seconds: data.Seconds,
+			Nanos:   data.Nseconds,
+		}
+
+		// return response
+		response.Value = data.Value
+		response.Timestamp = &timestamp
+		response.Ok = 1
+
 	}
-
-	timestamp := timestamppb.Timestamp{
-		Seconds: data.Seconds,
-		Nanos:   data.Nseconds,
-	}
-
-	// return response
-	response := &pb.ReadResponse{
-		Value:     data.Value,
-		Timestamp: &timestamp,
-		Ok:        1,
-	}
-
-	return response, nil
+	return &response, nil
 }
 
 func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest) (*pb.WriteResponse, error) {
@@ -82,12 +92,10 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	// encode as json in pretty format
 	b, err := json.MarshalIndent(data, "", "	")
 	check(err)
-	fmt.Println(string(b))
 
 	// write to file
 	result := ioutil.WriteFile("./data/"+file, b, 0644)
 	check(result)
-	fmt.Println("Write to json successful!")
 
 	// return response
 	response := &pb.WriteResponse{

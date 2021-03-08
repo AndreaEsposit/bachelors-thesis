@@ -1,6 +1,7 @@
 import grpc
 import time
 import json
+import os
 from pathlib import Path
 from concurrent import futures
 
@@ -14,25 +15,34 @@ grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
 # create a class to define the server functions, derived
 # from storage_pb2_grpc.StorageServicer
+
+
 class StorageServicer(storage_pb2_grpc.StorageServicer):
 
     def Read(self, request, context):
         filename = request.FileName
 
         path = Path(__file__).parent / "./data"
-        filepath = str(path) + filename + ".json"
+        filepath = str(path) + "/" + filename + ".json"
 
-        # load JSON file
-        with open(filepath) as f:
-            data = json.load(f)
+        if os.path.isfile(filepath):
+            with open(filepath) as f:
+                data = json.load(f)
 
-        val = data["value"]
-        timestamp = {
-            "seconds" : data["seconds"],
-            "nanos" : data["nseconds"]
-        }
+            val = data["value"]
+            timestamp = {
+                "seconds": data["seconds"],
+                "nanos": data["nseconds"]
+            }
 
-        return storage_pb2.ReadResponse(Value=val, Timestamp=timestamp, Ok=1)
+            return storage_pb2.ReadResponse(Value=val, Timestamp=timestamp, Ok=1)
+        else:
+            timestamp = {
+                "seconds": 0,
+                "nanos": 0
+            }
+
+            return storage_pb2.ReadResponse(Value="", Timestamp=timestamp, Ok=0)
 
     def Write(self, request, context):
         filename = request.FileName
@@ -40,9 +50,8 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
         val = request.Value
 
         path = Path(__file__).parent / "./data"
-        print(path)
 
-        filepath = str(path) + filename + ".json"
+        filepath = str(path)+"/" + filename + ".json"
 
         dataset = {
             "seconds": timestamp.seconds,
