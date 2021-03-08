@@ -9,7 +9,8 @@ import storage_pb2_grpc
 import storage_pb2
 
 # gRPC related variables
-grpc_host = u'[::]'
+# grpc_host = u'[::]'
+grpc_host = u'152.94.162.31'  # bbchain21
 grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 

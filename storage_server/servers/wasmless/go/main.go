@@ -28,7 +28,7 @@ type Data struct {
 // NewStorageServer initializes an EchoServer
 func NewStorageServer() *StorageServer {
 	return &StorageServer{
-		port: "localhost:50051", //152.94.1.102:50051 (Pitter3)
+		port: "152.94.162.31:50051", // bbchain21
 	}
 }
 
