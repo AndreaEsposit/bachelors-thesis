@@ -178,7 +178,7 @@ func multiWrite(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice 
 	return 0, clients
 }
 
-// singleWrite function will be run by goroutines. It is the actually gRPC write Call
+// singleWrite function will be run by goroutines. It is the actual gRPC write Call
 func singleWrite(client pb.StorageClient, message *pb.WriteRequest) (response *pb.WriteResponse, err error) {
 	response, err = client.Write(context.Background(), message)
 	wg.Done()
@@ -268,7 +268,7 @@ func multiRead(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice i
 	return 0, clients
 }
 
-// singleRead function will be run by goroutines. It is the actually gRPC read Call
+// singleRead function will be run by goroutines. It is the actual gRPC read Call
 func singleRead(client pb.StorageClient, message *pb.ReadRequest) (response *pb.ReadResponse, err error) {
 	response, err = client.Read(context.Background(), message)
 	wg.Done()
