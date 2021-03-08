@@ -17,6 +17,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// IP is used to choose the IP of the server
+const IP = "localhost:50052"
+
 func main() {
 	// ---------------------------------------------------------
 	// initialize the WebAssembly module
@@ -102,7 +105,7 @@ func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, 
 		funcs:  funcs,
 		memory: memory,
 		stdout: stdout,
-		port:   "localhost:50051", //152.94.1.102:50051 (Pitter3)
+		port:   IP, //152.94.1.102:50051 (Pitter3)
 	}
 }
 

@@ -41,7 +41,7 @@ memory = instance_linking.exports["memory"]
 
 # gRPC related variables
 grpc_host = u'[::]'
-grpc_port = u'50051'
+grpc_port = u'50053'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
 

@@ -19,6 +19,9 @@ use tokio::sync::{mpsc, oneshot};
 
 use cap_std::fs::Dir;
 
+// IP is used to choose the IP of the server
+const IP: &str = "127.0.0.1:50054";
+
 pub mod proto {
     tonic::include_proto!("proto"); // The string specified here must match the proto package name
 }
@@ -70,16 +73,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // this is just a precoution to see if the WasmActor is ready
     let status = handle.ready_to_use().await;
-    println!("WasmActor status: {:?}", status);
     if status == 1 {
         println!("WasmActor ready")
     }
 
     // ---------
 
-    let addr = "127.0.0.1:50051".parse()?;
+    let addr = IP.parse()?;
     let store_server = MyStorage::new(handle);
-    println!("Server is running at 127.0.0.1:50051\n");
+    println!("Server is running at {}\n", IP);
 
     Server::builder()
         .add_service(StorageServer::new(store_server))
