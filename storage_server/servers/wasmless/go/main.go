@@ -14,6 +14,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// IP is used to choose the IP of the server
+const IP = "localhost:50051" //152.94.162.31:50051 //bbchain21
+
 type StorageServer struct {
 	port string
 	pb.UnimplementedStorageServer
@@ -28,7 +31,7 @@ type Data struct {
 // NewStorageServer initializes an EchoServer
 func NewStorageServer() *StorageServer {
 	return &StorageServer{
-		port: "152.94.162.31:50051", // bbchain21
+		port: IP, // bbchain21
 	}
 }
 
