@@ -12,6 +12,7 @@ import (
 	pb "github.com/AndreaEsposit/practice/storage_server/proto"
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 //TODO: Add a re-connection feature if connection is lost
@@ -129,19 +130,21 @@ func multiWrite(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice 
 
 	var returnMessages []*pb.WriteResponse
 	var failureCalls []int
-	for i, client := range clients {
+	for index, client := range clients {
 		wg.Add(1)
-		rMessage, err := singleWrite(client, &message)
+		c := make(chan wasmRes)
+		go singleWrite(client, &message, c, index)
 		// remove broken connection
-		if err != nil {
-			delete(clients, i)
-			failureCalls = append(failureCalls, i)
+		response := <-c
+		if response.err != nil {
+			delete(clients, response.i)
+			failureCalls = append(failureCalls, response.i)
 			// if no more connections are available, panic
 			if len(clients) == 0 {
 				check(err)
 			}
 		} else {
-			returnMessages = append(returnMessages, rMessage)
+			returnMessages = append(returnMessages, response.pb.(*pb.WriteResponse))
 		}
 
 	}
@@ -179,10 +182,10 @@ func multiWrite(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice 
 }
 
 // singleWrite function will be run by goroutines. It is the actual gRPC write Call
-func singleWrite(client pb.StorageClient, message *pb.WriteRequest) (response *pb.WriteResponse, err error) {
-	response, err = client.Write(context.Background(), message)
+func singleWrite(client pb.StorageClient, message *pb.WriteRequest, c chan (wasmRes), i int) {
+	response, err := client.Write(context.Background(), message)
 	wg.Done()
-	return response, err
+	c <- wasmRes{pb: response, err: err, i: i}
 }
 
 func multiRead(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice int, activeClients map[int]pb.StorageClient) {
@@ -208,24 +211,27 @@ func multiRead(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice i
 	var lostConns []int
 	var failures []int
 	var successes int
-	for i, client := range clients {
+	for index, client := range clients {
 		wg.Add(1)
-		rMessage, err := singleRead(client, &message)
+		c := make(chan wasmRes)
+		go singleRead(client, &message, c, index)
+		response := <-c
 		// remove broken connection
-		if err != nil {
-			delete(clients, i)
-			lostConns = append(lostConns, i)
+		if response.err != nil {
+			delete(clients, response.i)
+			lostConns = append(lostConns, response.i)
 			// if no more connections are available, panic
 			if len(clients) == 0 {
-				check(err)
+				check(response.err)
 			}
 		} else {
 			// check if it is a success or a failure
+			rMessage := response.pb.(*pb.ReadResponse)
 			returnMessages = append(returnMessages, rMessage)
 			if rMessage.GetOk() == 1 {
 				successes++
 			} else {
-				failures = append(failures, i)
+				failures = append(failures, response.i)
 			}
 		}
 
@@ -269,10 +275,10 @@ func multiRead(reader *bufio.Reader, clients map[int]pb.StorageClient) (choice i
 }
 
 // singleRead function will be run by goroutines. It is the actual gRPC read Call
-func singleRead(client pb.StorageClient, message *pb.ReadRequest) (response *pb.ReadResponse, err error) {
-	response, err = client.Read(context.Background(), message)
+func singleRead(client pb.StorageClient, message *pb.ReadRequest, c chan (wasmRes), i int) {
+	response, err := client.Read(context.Background(), message)
 	wg.Done()
-	return response, err
+	c <- wasmRes{pb: response, err: err, i: i}
 }
 
 // returns newesr ReadResponse
@@ -286,4 +292,11 @@ func newest(arr []*pb.ReadResponse) *pb.ReadResponse {
 		}
 	}
 	return newest
+}
+
+// wasmRes is used to communicate between goroutines
+type wasmRes struct {
+	pb  proto.Message
+	err error
+	i   int
 }
