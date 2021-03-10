@@ -39,7 +39,7 @@ var nRequests = 0
 
 func main() {
 	//IPs = []string{"localhost:50051", "localhost:50052", "localhost:50053", "localhost:50054"}
-	IPs = []string{"localhost:50051"}
+	IPs = []string{"152.94.162.12:50051"} // 152.94.162.12 = bbchain2
 
 	clients := map[int]pb.StorageClient{}
 
@@ -79,7 +79,7 @@ func main() {
 	// wait before you write to file
 	time.Sleep(10 * time.Second)
 
-	file, err := os.Create("result" + os.Args[3] + ".csv")
+	file, err := os.Create("server" + os.Args[3] + "-client" + os.Args[4] + ".csv")
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
