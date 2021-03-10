@@ -16,7 +16,7 @@ read -p "Mode:" MODE
 
 # Task 2:
 #   launhes the benchmark on all the bbchain machines
-pdsh -w andreaes@bbchain[$FB-$LB]"cd Practice/storage_server/benchmarks/multi/&&chmod +x benchmark.sh&&./benchmark.sh $CLIENTS $REQUESTS $MODE"
+pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multi/&&chmod +x benchmark.sh&&./benchmark.sh $CLIENTS $REQUESTS $MODE"
 
 # ready the use of the acquire script
 chmod +x acquireData.sh
