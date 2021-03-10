@@ -1,22 +1,20 @@
 #!/usr/local/bin/bash
 
 # if it doesn't work: chmod +x benchmark.sh
-#git reset --hard origin/master
 
-# update build on every bbchain (git pull)
 FB=20
 LB=30
 
+# Task 1: 
+#   reset to head and pull master again to be sure that you have the latest build
+while pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/&&git reset --hard HEAD; git pull";do
+    sleep 10
+done
 
 
-for i in $(seq $FB $LB);do 
-    ssh jmcad@bbchain{$i}.ux.uis.no
-    cd Practice/
-    git reset --hard HEAD
-    git pull
+echo HELLO!
 
-
-# # Run go custom benchmark program 
+# Run go custom benchmark program 
 # read -p "Number of clients:" CLIENTS
 # read -p "Number of requests:" REQUESTS
 # read -p "Mode:" MODE
