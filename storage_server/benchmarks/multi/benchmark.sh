@@ -1,14 +1,15 @@
 #!/usr/local/bin/bash
 
 # if it doesn't work: chmod +x benchmark.sh
+#git reset --hard origin/master
 
 # update build on every bbchain (git pull)
-firstBbchain = 20
-lastBbchain = 30
+FB=20
+LB=30
 
 
 
-for i in $(seq $firstBbchain $lastBbchain);do 
+for i in $(seq $FB $LB);do 
     ssh jmcad@bbchain{$i}.ux.uis.no
     cd Practice/
     git reset --hard HEAD
