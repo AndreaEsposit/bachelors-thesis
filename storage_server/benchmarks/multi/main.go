@@ -79,7 +79,7 @@ func main() {
 	// wait before you write to file
 	time.Sleep(10 * time.Second)
 
-	file, err := os.Create("result.csv")
+	file, err := os.Create("result" + os.Args[3] + ".csv")
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
