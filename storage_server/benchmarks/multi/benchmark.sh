@@ -6,9 +6,8 @@ LB=30
 
 # Task 1: 
 #   reset to head and pull master again to be sure that you have the latest build
-while pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/&&git reset --hard HEAD; git pull";do
-    sleep 10
-done
+pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/&&git reset --hard HEAD; git pull"
+
 
 
 echo HELLO!
