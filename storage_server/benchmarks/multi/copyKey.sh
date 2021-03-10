@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/local/bin/bash
 
 # update build on every bbchain (git pull)
 firstBbchain = 2
