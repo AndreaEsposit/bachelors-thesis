@@ -3,7 +3,7 @@ Run this script in the folder where you want all the benchmarks results (Ex:"Was
 Change R_Proto depending on where you run the code
 GHZ needs to be changed depending on where ghz is (if it is installed with brew or go buil)
 
-Program can be runned like this: python3 autokatic.py name_result_file(ex: 1-Client) 200(number of messages) number_of_clients mode(read/r or write/w)
+Program can be runned like this: python3 automatic_storage.py name_result_file(ex: 1-Client) 200(number of messages) number_of_clients mode(read/r or write/w)
 @author: Andrea Esposito
 """
 
@@ -125,7 +125,7 @@ def main():
         print("Write a valid mode! (read/r or write/w")
         return
 
-    runAllBenchMarks(number_of_benchmarks=10, clients=numberOfClients, number_of_messages=numberOfMessages, data=data, benchmarks_name=os.path.basename(
+    runAllBenchMarks(number_of_benchmarks=1, clients=numberOfClients, number_of_messages=numberOfMessages, data=data, benchmarks_name=os.path.basename(
         THIS_FOLDER), address="localhost", port=50051, mode=mode)
     getUsefulData(resultName)
     cleanUp(os.path.basename(THIS_FOLDER))

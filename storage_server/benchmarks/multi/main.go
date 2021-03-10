@@ -1,3 +1,10 @@
+/*
+Custom storage-cient (for benchmarking purposes).
+Edit IPs with the IPs of the server you want to connect to
+
+Program can be runned like this: go run main.go numberOfRequests mode(r/read/Read/READ or w/Write/write/WRITE)
+@author: Andrea Esposito
+*/
 package main
 
 import (
@@ -78,7 +85,7 @@ func main() {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	err = writer.Write([]string{"Latency", "Time(UNIX)"})
+	err = writer.Write([]string{"Latency(MicroSeconds)", "Time(UnixFormat)"})
 	checkError("cannot write to file", err)
 	for i, value := range latencies {
 		s := []string{strconv.Itoa(int(value.Microseconds())), strconv.Itoa(int(doneTimes[i]))}
@@ -118,6 +125,8 @@ func mWrite(clients map[int]pb.StorageClient, message *pb.WriteRequest, latencie
 
 	}
 	wg.Wait()
+	// -1 total requests
+	nRequests--
 	*times = append(*times, time.Now().Unix())
 }
 
@@ -126,8 +135,6 @@ func singleWrite(client pb.StorageClient, message *pb.WriteRequest) {
 	check(err)
 	// done current request
 	wg.Done()
-	// -1 total requests
-	nRequests--
 }
 
 func mRead(clients map[int]pb.StorageClient, message *pb.ReadRequest, latencies *[]time.Duration, times *[]int64) {
@@ -138,6 +145,8 @@ func mRead(clients map[int]pb.StorageClient, message *pb.ReadRequest, latencies 
 
 	}
 	wg.Wait()
+	// -1 total requests
+	nRequests--
 	*times = append(*times, time.Now().Unix())
 }
 
@@ -149,6 +158,4 @@ func singleRead(client pb.StorageClient, message *pb.ReadRequest) {
 	}
 	// done current request
 	wg.Done()
-	// -1 total requests
-	nRequests--
 }
