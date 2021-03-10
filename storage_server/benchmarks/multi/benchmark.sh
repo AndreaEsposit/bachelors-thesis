@@ -11,5 +11,6 @@ MODE=$4
 
 for i in $(seq 1 $CLIENTS)
     do
-        nohup go run main.go $REQUESTS $MODE $SERVERNUMBER $i >/dev/null 2>&1 &
+        #nohup go run main.go $REQUESTS $MODE $SERVERNUMBER $i >/dev/null 2>&1 &
+        go run main.go $REQUESTS $MODE $SERVERNUMBER $i
 done
