@@ -6,4 +6,4 @@ read -p "Number of first bbchain machine: " FB
 read -p "Number of last bbchain machine: " LB
 
 # scp data to bbchain1
-pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multi/&&scp ./{*.csv} andreaes@bbchain1.ux.uis.no:Practice/storage_server/benchmarks/multi&&rm *.csv"
+pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multi/&&scp ./*.csv andreaes@bbchain1.ux.uis.no:Practice/storage_server/benchmarks/multi&&rm *.csv"
