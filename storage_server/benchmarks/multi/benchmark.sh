@@ -3,10 +3,10 @@
 
 
 # Run go custom benchmark program 
-SERVERNUMBER = $1
-CLIENTS = $2
-REQUESTS = $3
-MODE = $4
+SERVERNUMBER=$1
+CLIENTS=$2
+REQUESTS=$3
+MODE=$4
 
 
 for i in $(seq 1 $CLIENTS)
