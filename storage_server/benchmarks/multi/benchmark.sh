@@ -1,6 +1,5 @@
 #!/usr/local/bin/bash
-
-# if it doesn't work: chmod +x benchmark.sh
+# if it doesn't work: chmod +x benchmark.sh 
 
 FB=20
 LB=30
