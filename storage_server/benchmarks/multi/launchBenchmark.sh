@@ -12,7 +12,7 @@ read -p "Mode:" MODE
 
 # Task 1: 
 #   reset to head and pull master again to be sure that you have the latest build
-pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/&&git reset --hard HEAD; git pull"
+pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/&&git reset --hard; git clean -f -d; git checkout HEAD; git pull"
 
 # Task 2:
 #   launhes the benchmark on all the bbchain machines
