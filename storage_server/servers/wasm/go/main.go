@@ -50,7 +50,7 @@ func main() {
 	check(err)
 
 	// create the WebAssembly-module
-	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/in_memory_storage.wasm")
+	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/storage_application.wasm")
 	check(err)
 	instance, err := linker.Instantiate(module)
 	check(err)
