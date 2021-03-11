@@ -3,14 +3,13 @@
 
 
 # Run go custom benchmark program 
-SERVERNUMBER=$1
-CLIENTS=$2
-REQUESTS=$3
-MODE=$4
+CLIENTS=$1
+REQUESTS=$2
+MODE=$3
 
 
 for i in $(seq 1 $CLIENTS)
     do
         #nohup go run main.go $REQUESTS $MODE $SERVERNUMBER $i >/dev/null 2>&1 &
-        go run main.go $REQUESTS $MODE $SERVERNUMBER $i
+        go run main.go $REQUESTS $MODE $i
 done
