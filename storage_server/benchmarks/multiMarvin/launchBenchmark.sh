@@ -16,7 +16,7 @@ pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/&&git reset --hard; git clean -f -d;
 
 # Task 2:
 #   launhes the benchmark on all the bbchain machines
-pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multi/&&chmod +x benchmark.sh&&./benchmark.sh $CLIENTS $REQUESTS $MODE"
+pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multiMarvin/&&chmod +x benchmark.sh&&./benchmark.sh $CLIENTS $REQUESTS $MODE"
 
 # ready the use of the acquire script
 chmod +x acquireData.sh

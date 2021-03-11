@@ -8,5 +8,5 @@ read -p "Number of last bbchain machine: " LB
 # scp data to bbchain1
 for i in $(seq $FB $LB)
     do
-        ssh jmcad@bbchain$i.ux.uis.no -n 'cd Practice/storage_server/benchmarks/multi/&&for f in *.csv; do mv "$f" "${f%.csv}_$HOSTNAME.csv"; done; scp ./*.csv jmcad@bbchain1.ux.uis.no:Practice/storage_server/benchmarks/multi&&rm *.csv; exit'
+        ssh jmcad@bbchain$i.ux.uis.no -n 'cd Practice/storage_server/benchmarks/multiMarvin/&&for f in *.csv; do mv "$f" "${f%.csv}_$HOSTNAME.csv"; done; scp ./*.csv jmcad@bbchain1.ux.uis.no:Practice/storage_server/benchmarks/multiMarvin&&rm *.csv; exit'
 done

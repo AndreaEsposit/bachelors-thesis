@@ -117,7 +117,6 @@ func (server *StorageServer) Read(ctx context.Context, message *pb.ReadRequest) 
 
 // Write will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Write(ctx context.Context, message *pb.WriteRequest) (*pb.WriteResponse, error) {
-	fmt.Printf("%v", message.GetValue())
 	wasmResponse := server.callWasm("write", message, &pb.WriteResponse{})
 	return wasmResponse.(*pb.WriteResponse), nil
 }
