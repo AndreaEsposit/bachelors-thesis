@@ -18,7 +18,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.12:50051" // bbchain2
+const IP = "152.94.162.12:50051" // bbchain2=152.94.162.12
 
 func main() {
 	// ---------------------------------------------------------
@@ -50,7 +50,7 @@ func main() {
 	check(err)
 
 	// create the WebAssembly-module
-	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/storage_application.wasm")
+	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/in_memory_storage.wasm")
 	check(err)
 	instance, err := linker.Instantiate(module)
 	check(err)
