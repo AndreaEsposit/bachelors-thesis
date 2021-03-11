@@ -1,5 +1,5 @@
 #!/usr/local/bin/bash
-# remember to: chmod +x benchmark.sh 
+# remember to: chmod +x acquireData.sh 
 
 # gather data from FB server to LB server
 read -p "Number of first bbchain machine: " FB

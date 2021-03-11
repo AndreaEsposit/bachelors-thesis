@@ -1,5 +1,5 @@
 #!/usr/local/bin/bash
-# remember to: chmod +x benchmark.sh 
+# remember to: chmod +x launchBenchmark.sh 
 
 
 # run benchmark from FB server to LB server
