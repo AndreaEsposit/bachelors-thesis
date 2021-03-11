@@ -86,7 +86,7 @@ func NewEchoServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, std
 		funcs:  funcs,
 		memory: memory,
 		stdout: stdout,
-		port:   "152.94.1.102:50051", //152.94.1.102:50051 (Pitter3)
+		port:   "152.94.162.12:50051", //152.94.1.102:50051 (Pitter3)
 	}
 }
 

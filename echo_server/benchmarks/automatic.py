@@ -103,7 +103,7 @@ def main():
     numberOfClients = sys.argv[3]
 
     runAllBenchMarks(3, numberOfClients, numberOfMessages, os.path.basename(
-        THIS_FOLDER), "152.94.1.102:50051", s1kb)
+        THIS_FOLDER), "152.94.162.12:50051", s1kb)
     getUsefulData(resultName)
     cleanUp(os.path.basename(THIS_FOLDER))
 
