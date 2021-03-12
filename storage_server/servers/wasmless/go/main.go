@@ -44,7 +44,10 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 	// defining a struct instance
 	var data Data
 
+	// take lock
 	server.mu.Lock()
+	defer server.mu.Unlock()
+
 	f, err := os.Open(file)
 	defer f.Close()
 	var response = pb.ReadResponse{}
@@ -79,7 +82,6 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 1
 
 	}
-	server.mu.Unlock()
 	return &response, nil
 }
 

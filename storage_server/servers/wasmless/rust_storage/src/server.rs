@@ -6,7 +6,7 @@ use tonic::{transport::Server, Request, Response, Status};
 use prost_types::Timestamp;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
-use std::{fs::File, io, path::Path};
+use std::{fs::File, io, path::Path, sync::Mutex};
 
 pub mod proto {
     tonic::include_proto!("proto"); // The string specified here must match the proto package name
@@ -20,8 +20,15 @@ struct Content {
     value: String,
 }
 
-#[derive(Debug, Default)]
-pub struct MyStorage {}
+pub struct MyStorage {
+    mu: Mutex<i64>,
+}
+
+impl MyStorage {
+    pub fn new(mu: Mutex<i64>) -> Self {
+        MyStorage { mu }
+    }
+}
 
 #[tonic::async_trait]
 impl Storage for MyStorage {
@@ -35,6 +42,7 @@ impl Storage for MyStorage {
         let pathf = Path::new(&file_path);
         let file = File::open(pathf);
 
+        let file_handle = self.mu.lock().expect("Mutex is poisoned"); // acquire the lock
         let response: ReadResponse;
         match file {
             Ok(file) => {
@@ -69,6 +77,7 @@ impl Storage for MyStorage {
                 }
             }
         }
+        drop(file_handle); // drop the lock
         Ok(Response::new(response))
     }
 
@@ -89,12 +98,16 @@ impl Storage for MyStorage {
         "nseconds": time.nanos,
         "value": request.value,});
 
-        // write to file
+        // acquire the lock
+        let file_handle = self.mu.lock().expect("Mutex is poisoned");
+        //write to file
         let write_result = write_to_file(file_path, data);
         let write_result = match write_result {
             Ok(_result) => 1,
             Err(_e) => 0,
         };
+        // drop the lock
+        drop(file_handle);
 
         // return response
         let response: WriteResponse = WriteResponse { ok: write_result };
@@ -112,7 +125,8 @@ fn write_to_file(file_path: String, data: serde_json::Value) -> Result<(), io::E
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "152.94.162.12:50051".parse()?;
-    let store_server = MyStorage::default();
+    let mu = Mutex::new(1);
+    let store_server = MyStorage::new(mu);
     println!("Server is running at 152.94.162.12:50051\n");
 
     Server::builder()
