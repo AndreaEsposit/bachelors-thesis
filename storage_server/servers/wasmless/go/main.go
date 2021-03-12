@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 
 	pb "github.com/AndreaEsposit/practice/storage_server/proto"
 	"google.golang.org/grpc"
@@ -15,11 +16,12 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.12:50051" //152.94.162.31:50051 //bbchain21
+const IP = "152.94.162.12:50051" //152.94.162.12:50051 //bbchain2
 
 type StorageServer struct {
 	port string
 	pb.UnimplementedStorageServer
+	mu sync.Mutex
 }
 
 type Data struct {
@@ -42,6 +44,7 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 	// defining a struct instance
 	var data Data
 
+	server.mu.Lock()
 	f, err := os.Open(file)
 	defer f.Close()
 	var response = pb.ReadResponse{}
@@ -76,6 +79,7 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 1
 
 	}
+	server.mu.Unlock()
 	return &response, nil
 }
 
@@ -96,9 +100,11 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	b, err := json.MarshalIndent(data, "", "	")
 	check(err)
 
+	server.mu.Lock()
 	// write to file
 	result := ioutil.WriteFile("./data/"+file, b, 0644)
 	check(result)
+	server.mu.Unlock()
 
 	// return response
 	response := &pb.WriteResponse{
