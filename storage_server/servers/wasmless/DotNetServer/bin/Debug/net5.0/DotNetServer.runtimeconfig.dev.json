@@ -1,8 +1,0 @@
-{
-  "runtimeOptions": {
-    "additionalProbingPaths": [
-      "/home/jiofrost/.dotnet/store/|arch|/|tfm|",
-      "/home/jiofrost/.nuget/packages"
-    ]
-  }
-}
