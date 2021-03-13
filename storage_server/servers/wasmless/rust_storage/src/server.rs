@@ -36,9 +36,10 @@ impl Storage for MyStorage {
     async fn read(&self, request: Request<ReadRequest>) -> Result<Response<ReadResponse>, Status> {
         let request = request.into_inner();
 
-        let mut file_path = "./data".to_owned();
+        let mut file_path = "./data/".to_owned();
         file_path.push_str(&request.file_name);
         file_path.push_str(".json");
+
         let pathf = Path::new(&file_path);
         let file = File::open(pathf);
 
@@ -127,7 +128,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "152.94.162.12:50051".parse()?;
     let mu = Mutex::new(1);
     let store_server = MyStorage::new(mu);
-    println!("Server is running at 152.94.162.12:50051\n");
+    println!("Server is running at {}\n", addr);
 
     Server::builder()
         .add_service(StorageServer::new(store_server))
