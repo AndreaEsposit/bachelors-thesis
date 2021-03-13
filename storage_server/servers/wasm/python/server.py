@@ -52,12 +52,12 @@ def copy_to_memory(sdata: bytearray):
     ptr = alloc(len(sdata))
 
     # cast pointer to int32 (even though it's not int32)
-    ptr_int = int(ptr)
+    # ptr_int = int(ptr)
 
     for i, v in enumerate(sdata):
-        memory.data_ptr[ptr_int + i] = v
+        memory.data_ptr[ptr + i] = v
 
-    return ptr_int
+    return ptr
 
 
 # call_wasm handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
@@ -67,21 +67,21 @@ def call_wasm(func, request, return_message):
     length = len(bytes_as_string)
 
     result_ptr = func(ptr, length)
-    res_ptr_int = int(result_ptr)
+    # res_ptr_int = int(result_ptr)
 
     # deallocate request protobuf message
     dealloc(ptr, length)
 
     result_len = get_len()
-    res_len_int = int(result_len)
+    # res_len_int = int(result_len)
 
-    response = bytearray(res_len_int)
+    response = bytearray(result_len)
 
-    for i in range(res_len_int):
-        response[i] = memory.data_ptr[res_ptr_int+i]
+    for i in range(result_len):
+        response[i] = memory.data_ptr[result_ptr+i]
 
     # deallocate response protobuf message
-    dealloc(res_ptr_int, res_len_int)
+    dealloc(result_ptr, result_len)
 
     # parse response to a protobuf message
     return_message.ParseFromString(response)
