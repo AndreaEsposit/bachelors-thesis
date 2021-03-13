@@ -3,6 +3,7 @@ from pathlib import Path
 import wasmtime
 import grpc
 import time
+import threading
 
 # Import the generated classes
 import storage_pb2_grpc
@@ -40,9 +41,12 @@ read = instance_linking.exports["read_data"]
 memory = instance_linking.exports["memory"]
 
 # gRPC related variables
-grpc_host = u'152.94.162.12'
+grpc_host = u'152.94.162.12'  # 152.94.162.12
 grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
+
+# lock
+lock = threading.Lock()
 
 
 # copy_to_mem handles the copy of serialized data to the
@@ -62,6 +66,7 @@ def copy_to_memory(sdata: bytearray):
 
 # call_wasm handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
 def call_wasm(func, request, return_message):
+    lock.acquire()  # take lock
     bytes_as_string = request.SerializeToString()
     ptr = copy_to_memory(bytes_as_string)
     length = len(bytes_as_string)
@@ -85,6 +90,8 @@ def call_wasm(func, request, return_message):
 
     # parse response to a protobuf message
     return_message.ParseFromString(response)
+
+    lock.release()  # release lock
 
     return return_message
 
