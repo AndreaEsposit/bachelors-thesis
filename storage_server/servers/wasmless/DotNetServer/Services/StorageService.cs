@@ -34,7 +34,7 @@ namespace DotNetServer.Services
         // this keeps truck of the state of the instace
         public bool instanceReady = false;
 
-        public Mutex Mu { get; set; }
+        public readonly Mutex Mu = new Mutex();
 
 
     }
@@ -59,8 +59,7 @@ namespace DotNetServer.Services
 
             if (!wasmSingleton.instanceReady)
             {
-                // Set up the mutex
-                wasmSingleton.Mu = new Mutex();
+                wasmSingleton.instanceReady = true;
             }
         }
 

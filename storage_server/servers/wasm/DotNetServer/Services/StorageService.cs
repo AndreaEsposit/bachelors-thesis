@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using Wasmtime;
 
 namespace DotNetServer.Services
@@ -36,6 +37,9 @@ namespace DotNetServer.Services
         // this keeps truck of the state of the instace
         public bool instanceReady = false;
 
+        // mutex lock to control wasm access
+        private readonly Mutex mu = new Mutex();
+
         // our wasm instance that gets made with lazy initialization 
         public Instance wasm;
         public Wasmtime.Externs.ExternMemory memory;
@@ -45,40 +49,46 @@ namespace DotNetServer.Services
 
         public T callWasm<T>(String fn, IMessage message) where T : IMessage<T>, new()
         {
-            // --- Copy the buffer to the module's memory 
-            var bytes = message.ToByteArray();
+            mu.WaitOne(); // acquire lock
+            try
+            {// --- Copy the buffer to the module's memory 
+                var bytes = message.ToByteArray();
 
-            var ptr = ((dynamic)wasm).new_alloc(bytes.Length);
-            var len = bytes.Length;
+                var ptr = ((dynamic)wasm).new_alloc(bytes.Length);
+                var len = bytes.Length;
 
-            Console.WriteLine($"I got here and this is the ptr: {ptr}");
+                Console.WriteLine($"I got here and this is the ptr: {ptr}");
 
-            bytes.CopyTo(memory.Span[ptr..]);
+                bytes.CopyTo(memory.Span[ptr..]);
 
 
-            // you can technically define the function each and every time
-            //var func = wasm.Functions.Where(f => f.Name == fn).First();
+                // you can technically define the function each and every time
+                //var func = wasm.Functions.Where(f => f.Name == fn).First();
 
-            // call the function you are intrested in
-            var resPtr = funcs[fn].Invoke(ptr, len);
+                // call the function you are intrested in
+                var resPtr = funcs[fn].Invoke(ptr, len);
 
-            // deallocate request protobuf message
-            ((dynamic)wasm).new_dealloc(ptr, len);
+                // deallocate request protobuf message
+                ((dynamic)wasm).new_dealloc(ptr, len);
 
-            // get Wasm response lenght
-            var resultLen = ((dynamic)wasm).get_response_len();
+                // get Wasm response lenght
+                var resultLen = ((dynamic)wasm).get_response_len();
 
-            // copy byte array fom WebAssembly to a result byte array
-            var resultMemory = memory.Span[resPtr..(resPtr + resultLen)];
-            var result = new byte[resultLen];
-            resultMemory.CopyTo(result);
+                // copy byte array fom WebAssembly to a result byte array
+                var resultMemory = memory.Span[resPtr..(resPtr + resultLen)];
+                var result = new byte[resultLen];
+                resultMemory.CopyTo(result);
 
-            // deallocate repsonse protobud message form Wasmtime's memory
-            ((dynamic)wasm).new_dealloc(resPtr, resultLen);
+                // deallocate repsonse protobud message form Wasmtime's memory
+                ((dynamic)wasm).new_dealloc(resPtr, resultLen);
 
-            message = parse<T>(result);
+                message = parse<T>(result);
 
-            return message is T value ? value : default(T);
+
+
+                return message is T value ? value : default(T);
+            }
+            finally { mu.ReleaseMutex(); }
         }
 
         // generic parser

@@ -732,26 +732,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\ryues\\.nuget\\packages\\": {}
+    "/home/jiofrost/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ryues\\source\\repos\\DotNetServer\\DotNetServer.csproj",
+      "projectUniqueName": "/home/jiofrost/practice/storage_server/servers/wasmless/DotNetServer/DotNetServer.csproj",
       "projectName": "DotNetServer",
-      "projectPath": "C:\\Users\\ryues\\source\\repos\\DotNetServer\\DotNetServer.csproj",
-      "packagesPath": "C:\\Users\\ryues\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ryues\\source\\repos\\DotNetServer\\obj\\",
+      "projectPath": "/home/jiofrost/practice/storage_server/servers/wasmless/DotNetServer/DotNetServer.csproj",
+      "packagesPath": "/home/jiofrost/.nuget/packages/",
+      "outputPath": "/home/jiofrost/practice/storage_server/servers/wasmless/DotNetServer/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\ryues\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/home/jiofrost/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net5.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -797,7 +795,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.200/RuntimeIdentifierGraph.json"
       }
     }
   }
