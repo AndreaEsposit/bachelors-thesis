@@ -18,7 +18,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.12:50051" // bbchain2=152.94.162.12
+const IP = "152.94.162.13:50051" // bbchain2=152.94.162.12
 
 func main() {
 	// ---------------------------------------------------------
@@ -153,7 +153,6 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 
 	// lock access to the server (extra security)
 	server.mu.Lock()
-	defer server.mu.Unlock()
 
 	ptr := server.copyToMemory(recivedBytes)
 	len := int32(len(recivedBytes))
@@ -179,6 +178,8 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	// deallocate response protobuf message
 	_, err = server.funcs["dealloc"].Call(resPtr32, intResLen)
 	check(err)
+
+	server.mu.Unlock()
 
 	// unmarshalling
 	if err := proto.Unmarshal(response, responseMessage); err != nil {
