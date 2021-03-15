@@ -39,7 +39,7 @@ var nRequests = 0
 
 func main() {
 	//IPs = []string{"localhost:50051", "localhost:50052", "localhost:50053", "localhost:50054"}
-	IPs = []string{"152.94.162.12:50051"} // 152.94.162.12 = bbchain2
+	IPs = []string{"152.94.162.13:50051"} // 152.94.162.12 = bbchain2
 
 	clients := map[int]pb.StorageClient{}
 

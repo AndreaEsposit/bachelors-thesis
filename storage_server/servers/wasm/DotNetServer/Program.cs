@@ -23,7 +23,7 @@ namespace DotNetServer
                 {
                     webBuilder.ConfigureKestrel(options =>
                     {
-                        System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse("152.94.162.12"); //bbchain2
+                        System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse("152.94.162.13"); //bbchain2
                         options.Listen(ipaddress, 50051, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
 
                         // Run in localhost
