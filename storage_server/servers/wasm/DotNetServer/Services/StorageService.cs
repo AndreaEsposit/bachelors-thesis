@@ -57,10 +57,9 @@ namespace DotNetServer.Services
             var ptr = ((dynamic)wasm).new_alloc(bytes.Length);
             var len = bytes.Length;
 
-            Console.WriteLine($"I got here and this is the ptr: {ptr}");
+            //Console.WriteLine($"I got here and this is the ptr: {ptr}");
 
             bytes.CopyTo(memory.Span[ptr..]);
-
 
             // you can technically define the function each and every time
             //var func = wasm.Functions.Where(f => f.Name == fn).First();
@@ -144,7 +143,6 @@ namespace DotNetServer.Services
                 wasmSingleton.instanceReady = true;
 
                 Console.WriteLine("Instance ready");
-
 
             }
 
