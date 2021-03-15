@@ -66,8 +66,9 @@ def copy_to_memory(sdata: bytearray):
 
 # call_wasm handles the actual wasm function calls, and takes care of all calls to alloc/dialloc in the wasm instance
 def call_wasm(func, request, return_message):
-    lock.acquire()  # take lock
     bytes_as_string = request.SerializeToString()
+
+    lock.acquire()  # take lock
     ptr = copy_to_memory(bytes_as_string)
     length = len(bytes_as_string)
 
@@ -88,10 +89,10 @@ def call_wasm(func, request, return_message):
     # deallocate response protobuf message
     dealloc(result_ptr, result_len)
 
+    lock.release()  # release lock
+
     # parse response to a protobuf message
     return_message.ParseFromString(response)
-
-    lock.release()  # release lock
 
     return return_message
 
