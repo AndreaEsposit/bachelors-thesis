@@ -96,17 +96,17 @@ namespace DotNetServer.Services
     }
     public class StorageService : Storage.StorageBase
     {
-        private readonly ILogger<StorageService> _logger;
+        //private readonly ILogger<StorageService> _logger;
         private WasmSingleton wasmSingleton = WasmSingleton.Instance;
 
 
-        public StorageService(ILogger<StorageService> logger)
+        public StorageService() //ILogger<StorageService> logger
         {
 
             if (!wasmSingleton.instanceReady)
             {
                 // Set up the logger
-                _logger = logger;
+                //_logger = logger;
                 // initialize the WebAssembly module
                 using var engine = new Engine();
                 using var store = new Store(engine);
