@@ -66,39 +66,34 @@ namespace DotNetServer.Services
         public override Task<ReadResponse> Read(ReadRequest request, ServerCallContext context)
         {
             ReadResponse result = new ReadResponse();
-            wasmSingleton.Mu.WaitOne(); // take lock
-            try
-            {
-                if (File.Exists($"./data/{request.FileName}.json"))
-                {
-                    Content content = JsonConvert.DeserializeObject<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
 
-                    Timestamp time = new Timestamp
-                    {
-                        Nanos = content.nseconds,
-                        Seconds = content.seconds,
-                    };
-                    result.Timestamp = time;
-                    result.Value = content.value;
-                    result.Ok = 1;
-                }
-                else
-                {
-                    Timestamp time = new Timestamp
-                    {
-                        Nanos = 0,
-                        Seconds = 0,
-                    };
-                    result.Timestamp = time;
-                    result.Value = "";
-                    result.Ok = 0;
-                }
-            }
-            finally
+            wasmSingleton.Mu.WaitOne(); // take lock
+            if (File.Exists($"./data/{request.FileName}.json"))
             {
-                wasmSingleton.Mu.ReleaseMutex(); // release lock
+                Content content = JsonConvert.DeserializeObject<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
+
+                Timestamp time = new Timestamp
+                {
+                    Nanos = content.nseconds,
+                    Seconds = content.seconds,
+                };
+                result.Timestamp = time;
+                result.Value = content.value;
+                result.Ok = 1;
             }
-            
+            else
+            {
+                Timestamp time = new Timestamp
+                {
+                    Nanos = 0,
+                    Seconds = 0,
+                };
+                result.Timestamp = time;
+                result.Value = "";
+                result.Ok = 0;
+            }
+            wasmSingleton.Mu.ReleaseMutex(); // release lock
+
 
             // Console.WriteLine($"This is the value of message: {resMessage.Value}");
             // Console.WriteLine($"This is the time of message: {resMessage.Timestamp}");
@@ -116,14 +111,11 @@ namespace DotNetServer.Services
             };
 
             wasmSingleton.Mu.WaitOne(); // take lock
-            try
-            {
-                File.WriteAllText($@"./data/{request.FileName}.json", JsonConvert.SerializeObject(content));
-            }
-            finally
-            {
-                wasmSingleton.Mu.ReleaseMutex(); // release lock
-            }
+
+            File.WriteAllText($@"./data/{request.FileName}.json", JsonConvert.SerializeObject(content));
+
+            wasmSingleton.Mu.ReleaseMutex(); // release lock
+
 
             var result = new WriteResponse { Ok = 1 };
             //Console.WriteLine($"This is the status of message: {resMessage.Ok}");
