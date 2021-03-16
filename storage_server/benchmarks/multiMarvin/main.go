@@ -64,7 +64,7 @@ func main() {
 		if mode == "w" || strings.ToLower(mode) == "write" {
 			timep, err := ptypes.TimestampProto(time.Now())
 			check(err)
-			message := pb.WriteRequest{FileName: "test", Value: con1kb, Timestamp: timep}
+			message := pb.WriteRequest{FileName: "test", Value: con10b, Timestamp: timep}
 
 			// run requests to all servers specified by IPs
 			mWrite(clients, &message, &latencies, &doneTimes)
