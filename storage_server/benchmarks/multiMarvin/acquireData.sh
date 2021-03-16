@@ -10,3 +10,10 @@ for i in $(seq $FB $LB)
     do
         ssh jmcad@bbchain$i.ux.uis.no -n 'cd Practice/storage_server/benchmarks/multiMarvin/&&for f in *.csv; do mv "$f" "${f%.csv}_$HOSTNAME.csv"; done; scp ./*.csv jmcad@bbchain1.ux.uis.no:Practice/storage_server/benchmarks/multiMarvin&&rm *.csv; exit'
 done
+
+# Runs the python code to analyze the data
+python3 analyse.py
+
+
+# Final message
+echo 'Data analyzed. Do: cat result.json'

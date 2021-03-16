@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 
 namespace DotNetServer.Services
@@ -52,14 +53,16 @@ namespace DotNetServer.Services
         private WasmSingleton wasmSingleton = WasmSingleton.Instance;
 
 
-        public StorageService(ILogger<StorageService> logger)
+        public StorageService() //ILogger<StorageService> logger
         {
             // Set up the logger
-            _logger = logger;
+            // _logger = logger;
 
             if (!wasmSingleton.instanceReady)
             {
                 wasmSingleton.instanceReady = true;
+
+                Console.WriteLine("I am ready for the benchmark!");
             }
         }
 
@@ -67,10 +70,12 @@ namespace DotNetServer.Services
         {
             ReadResponse result = new ReadResponse();
 
-            wasmSingleton.Mu.WaitOne(); // take lock
+
             if (File.Exists($"./data/{request.FileName}.json"))
             {
+                wasmSingleton.Mu.WaitOne(); // take lock
                 Content content = JsonConvert.DeserializeObject<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
+                wasmSingleton.Mu.ReleaseMutex(); // release lock
 
                 Timestamp time = new Timestamp
                 {
@@ -92,8 +97,6 @@ namespace DotNetServer.Services
                 result.Value = "";
                 result.Ok = 0;
             }
-            wasmSingleton.Mu.ReleaseMutex(); // release lock
-
 
             // Console.WriteLine($"This is the value of message: {resMessage.Value}");
             // Console.WriteLine($"This is the time of message: {resMessage.Timestamp}");
