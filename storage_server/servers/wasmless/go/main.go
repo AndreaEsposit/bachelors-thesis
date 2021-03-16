@@ -44,10 +44,6 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 	// defining a struct instance
 	var data Data
 
-	// take lock
-	server.mu.Lock()
-	defer server.mu.Unlock()
-
 	f, err := os.Open(file)
 	defer f.Close()
 	var response = pb.ReadResponse{}
@@ -63,7 +59,9 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 0
 
 	} else {
+		server.mu.Lock() // acquire lock
 		content, _ := ioutil.ReadAll(f)
+		server.mu.Unlock() // release lock
 
 		// decoding data struct
 		// from json format
@@ -102,11 +100,12 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	b, err := json.MarshalIndent(data, "", "	")
 	check(err)
 
-	server.mu.Lock()
+	server.mu.Lock() // acquire lock
 	// write to file
-	result := ioutil.WriteFile("./data/"+file, b, 0644)
+	result := os.WriteFile("./data/"+file, b, 0644)
+	server.mu.Unlock() // realease lock
+
 	check(result)
-	server.mu.Unlock()
 
 	// return response
 	response := &pb.WriteResponse{
