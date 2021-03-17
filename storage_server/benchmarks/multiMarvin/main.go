@@ -35,6 +35,9 @@ const con10b = "Testing!!!"
 // 1kb
 const con1kb = "Bruce Wayne was born to wealthy physician Dr. Thomas Wayne and his wife Martha, who were themselves members of the prestigious Wayne and Kane families of Gotham City, respectively. When he was three, Bruce's mother Martha was expecting a second child to be named Thomas Wayne, Jr. However, because of her intent to found a school for the underprivileged in Gotham, she was targeted by the manipulative Court of Owls, who arranged for her to have a car accident. She and Bruce survived, but the accident forced Martha into premature labor, and the baby was lost. While on vacation to forget about these events, the Wayne Family butler, Jarvis Pennyworth was killed by one of the Court of Owls' Talons. A letter he'd written to his son Alfred, warning him away from the beleaguered Wayne family, was never delivered. As such, Alfred - who had been an actor at the Globe Theatre at the time and a military medic before that, traveled to Gotham City to take up his father's place, serving the Waynes....."
 
+// 1Mb
+var con1Mb = strings.Repeat(con1kb, 100)
+
 var nRequests = 0
 
 func main() {
