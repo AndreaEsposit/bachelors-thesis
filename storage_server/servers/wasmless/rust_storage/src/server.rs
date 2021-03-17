@@ -125,7 +125,7 @@ fn write_to_file(file_path: String, data: serde_json::Value) -> Result<(), io::E
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "152.94.162.12:50051".parse()?;
+    let addr = "152.94.162.16:50051".parse()?;
     let mu = Mutex::new(1);
     let store_server = MyStorage::new(mu);
     println!("Server is running at {}\n", addr);

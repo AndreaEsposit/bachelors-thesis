@@ -16,7 +16,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.12:50051" //152.94.162.12:50051 //bbchain2
+const IP = "152.94.162.16:50051" //152.94.162.16:50051 //bbchain6
 
 type StorageServer struct {
 	port string
