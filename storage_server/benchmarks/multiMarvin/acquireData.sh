@@ -16,4 +16,4 @@ python3 analyse.py
 
 
 # Final message
-echo 'Data analyzed. Do: cat result.json'
+cat result.json
