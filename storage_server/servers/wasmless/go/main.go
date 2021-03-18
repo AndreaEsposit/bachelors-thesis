@@ -79,6 +79,8 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Timestamp = &timestamp
 		response.Ok = 1
 
+		fmt.Println("Read correctly")
+
 	}
 	return &response, nil
 }
