@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -44,10 +44,12 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 	// defining a struct instance
 	var data Data
 
+	server.mu.Lock() // acquire lock
 	f, err := os.Open(file)
 	defer f.Close()
 	var response = pb.ReadResponse{}
 	if os.IsNotExist(err) {
+		server.mu.Unlock() // release lock since error
 		timestamp := timestamppb.Timestamp{
 			Seconds: 0,
 			Nanos:   0,
@@ -59,8 +61,7 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 0
 
 	} else {
-		server.mu.Lock() // acquire lock
-		content, _ := ioutil.ReadAll(f)
+		content, _ := io.ReadAll(f)
 		server.mu.Unlock() // release lock
 
 		// decoding data struct
