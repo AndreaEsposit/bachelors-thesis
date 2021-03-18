@@ -14,5 +14,8 @@ done
 # Runs the python code to analyze the data
 python3 analyse.py
 
-# Final message
-echo 'Data analyzed. Do: cat result.json'
+# cat the file
+cat result.json
+
+# remove the file
+rm result.json
