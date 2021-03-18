@@ -1,13 +1,12 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using GrpcServer;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using Utf8Json;
 
 
 namespace DotNetServer.Services
@@ -80,7 +79,7 @@ namespace DotNetServer.Services
             if (File.Exists($"./data/{request.FileName}.json"))
             {
                 wasmSingleton.Mu.WaitOne(); // take lock
-                Content content = JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
+                Content content = Utf8Json.JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
                 wasmSingleton.Mu.ReleaseMutex(); // release lock
 
                 Timestamp time = new Timestamp
@@ -123,10 +122,7 @@ namespace DotNetServer.Services
 
 
             wasmSingleton.Mu.WaitOne(); // take lock
-
-            File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.SerializeToUtf8Bytes(content, wasmSingleton.Options));
-
-            //File.WriteAllText($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content, wasmSingleton.Options));
+            File.WriteAllBytes($@"./data/{request.FileName}.json", Utf8Json.JsonSerializer.Serialize(content));
             wasmSingleton.Mu.ReleaseMutex(); // release lock
 
 

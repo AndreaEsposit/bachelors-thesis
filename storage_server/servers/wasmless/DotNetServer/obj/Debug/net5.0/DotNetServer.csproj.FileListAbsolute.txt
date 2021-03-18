@@ -96,3 +96,4 @@ C:/Users/ryues/source/repos/DotNetServer/obj/Debug/net5.0/scopedcss/bundle/DotNe
 C:/Users/ryues/source/repos/DotNetServer/obj/Debug/net5.0/DotNetServer.RazorTargetAssemblyInfo.cache
 C:/Users/ryues/source/repos/DotNetServer/obj/Debug/net5.0/DotNetServer.csproj.CopyComplete
 C:/Users/ryues/source/repos/DotNetServer/obj/Debug/net5.0/DotNetServer.genruntimeconfig.cache
+/home/jiofrost/practice/storage_server/servers/wasmless/DotNetServer/bin/Debug/net5.0/Utf8Json.dll
