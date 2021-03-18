@@ -1,8 +1,8 @@
 {
   "runtimeOptions": {
     "additionalProbingPaths": [
-      "/home/jiofrost/.dotnet/store/|arch|/|tfm|",
-      "/home/jiofrost/.nuget/packages"
+      "C:\\Users\\ryues\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\ryues\\.nuget\\packages"
     ]
   }
 }

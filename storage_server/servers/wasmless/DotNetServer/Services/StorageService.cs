@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
-using Utf8Json;
 
 
 namespace DotNetServer.Services
@@ -79,7 +78,7 @@ namespace DotNetServer.Services
             if (File.Exists($"./data/{request.FileName}.json"))
             {
                 wasmSingleton.Mu.WaitOne(); // take lock
-                Content content = Utf8Json.JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
+                Content content = JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
                 wasmSingleton.Mu.ReleaseMutex(); // release lock
 
                 Timestamp time = new Timestamp
@@ -122,7 +121,7 @@ namespace DotNetServer.Services
 
 
             wasmSingleton.Mu.WaitOne(); // take lock
-            File.WriteAllBytes($@"./data/{request.FileName}.json", Utf8Json.JsonSerializer.Serialize(content));
+            File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.SerializeToUtf8Bytes(content));
             wasmSingleton.Mu.ReleaseMutex(); // release lock
 
 
