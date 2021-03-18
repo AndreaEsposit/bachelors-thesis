@@ -2,7 +2,8 @@
 using Grpc.Core;
 using GrpcServer;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +38,11 @@ namespace DotNetServer.Services
 
         public readonly Mutex Mu = new Mutex();
 
+        public JsonSerializerOptions Options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+        };
+
 
     }
     public class Content
@@ -48,7 +54,7 @@ namespace DotNetServer.Services
 
     public class StorageService : Storage.StorageBase
     {
-        private readonly ILogger<StorageService> _logger;
+        //private readonly ILogger<StorageService> _logger;
 
         private WasmSingleton wasmSingleton = WasmSingleton.Instance;
 
@@ -74,7 +80,7 @@ namespace DotNetServer.Services
             if (File.Exists($"./data/{request.FileName}.json"))
             {
                 wasmSingleton.Mu.WaitOne(); // take lock
-                Content content = JsonConvert.DeserializeObject<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
+                Content content = JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
                 wasmSingleton.Mu.ReleaseMutex(); // release lock
 
                 Timestamp time = new Timestamp
@@ -114,10 +120,10 @@ namespace DotNetServer.Services
                 value = request.Value,
             };
 
+
+
             wasmSingleton.Mu.WaitOne(); // take lock
-
-            File.WriteAllText($@"./data/{request.FileName}.json", JsonConvert.SerializeObject(content));
-
+            File.WriteAllText($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content, wasmSingleton.Options));
             wasmSingleton.Mu.ReleaseMutex(); // release lock
 
 
