@@ -85,6 +85,7 @@ namespace DotNetServer.Services
                 result.Timestamp = time;
                 result.Value = content.value;
                 result.Ok = 1;
+                Console.WriteLine($"This is the value of message: {result.Ok}");
             }
             else
             {
