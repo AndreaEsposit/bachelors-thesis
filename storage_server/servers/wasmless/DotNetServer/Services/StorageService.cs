@@ -120,10 +120,13 @@ namespace DotNetServer.Services
                 value = request.Value,
             };
 
-
+            byte[] jsonUtf8Bytes;
 
             wasmSingleton.Mu.WaitOne(); // take lock
-            File.WriteAllText($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content, wasmSingleton.Options));
+
+            File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.SerializeToUtf8Bytes(content, wasmSingleton.Options));
+
+            //File.WriteAllText($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content, wasmSingleton.Options));
             wasmSingleton.Mu.ReleaseMutex(); // release lock
 
 
