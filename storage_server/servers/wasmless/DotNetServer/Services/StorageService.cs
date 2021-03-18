@@ -120,7 +120,7 @@ namespace DotNetServer.Services
                 value = request.Value,
             };
 
-            byte[] jsonUtf8Bytes;
+
 
             wasmSingleton.Mu.WaitOne(); // take lock
 
