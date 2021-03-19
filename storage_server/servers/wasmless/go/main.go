@@ -46,10 +46,8 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 
 	server.mu.Lock() // acquire lock
 	f, err := os.Open(file)
-	defer f.Close()
 	var response = pb.ReadResponse{}
 	if os.IsNotExist(err) {
-		server.mu.Unlock() // release lock since error
 		timestamp := timestamppb.Timestamp{
 			Seconds: 0,
 			Nanos:   0,
@@ -62,7 +60,6 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 
 	} else {
 		content, _ := io.ReadAll(f)
-		server.mu.Unlock() // release lock
 
 		// decoding data struct
 		// from json format
@@ -81,6 +78,9 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 1
 
 	}
+
+	f.Close()          // close file
+	server.mu.Unlock() // release lock since error
 	return &response, nil
 }
 
