@@ -98,3 +98,4 @@ C:\Users\ryues\source\repos\DotNetServer\obj\Debug\net5.0\DotNetServer.RazorTarg
 C:\Users\ryues\source\repos\DotNetServer\obj\Debug\net5.0\DotNetServer.csproj.CopyComplete
 C:\Users\ryues\source\repos\DotNetServer\obj\Debug\net5.0\DotNetServer.genruntimeconfig.cache
 C:\Users\ryues\source\repos\DotNetServer\obj\Debug\net5.0\DotNetServer.csprojAssemblyReference.cache
+C:\Users\ryues\source\repos\DotNetServer\bin\Debug\net5.0\Utf8Json.dll
