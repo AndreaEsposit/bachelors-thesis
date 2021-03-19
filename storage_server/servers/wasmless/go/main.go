@@ -38,13 +38,13 @@ func NewStorageServer() *StorageServer {
 }
 
 func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) (*pb.ReadResponse, error) {
+	server.mu.Lock() // acquire lock
+
 	filename := request.FileName
 	file := "./data/" + filename + ".json"
 
 	// defining a struct instance
 	var data Data
-
-	server.mu.Lock() // acquire lock
 	f, err := os.Open(file)
 	var response = pb.ReadResponse{}
 	if os.IsNotExist(err) {
