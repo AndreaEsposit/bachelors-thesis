@@ -153,10 +153,8 @@ func singleWrite(client pb.StorageClient, message *pb.WriteRequest, activeReques
 	if benchmarkingType == 1 {
 		wg.Done()
 	} else if benchmarkingType == 2 {
-		mu.Lock()                 // take lock
-		if *activeRequests == 1 { // no need to wg.Done()
-			return
-		} else {
+		mu.Lock() // take lock
+		if *activeRequests > 1 {
 			wg.Done()
 			*activeRequests-- // -1 active requests
 			fmt.Println(*activeRequests)
@@ -193,10 +191,8 @@ func singleRead(client pb.StorageClient, message *pb.ReadRequest, activeRequests
 	if benchmarkingType == 1 {
 		wg.Done()
 	} else if benchmarkingType == 2 {
-		mu.Lock()                 // take lock
-		if *activeRequests == 1 { // no need to wg.Done()
-			return
-		} else {
+		mu.Lock() // take lock
+		if *activeRequests > 1 {
 			wg.Done()
 			*activeRequests-- // -1 active requests
 			fmt.Println(*activeRequests)
