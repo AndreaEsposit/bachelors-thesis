@@ -20,7 +20,7 @@ use tokio::sync::{mpsc, oneshot};
 use cap_std::fs::Dir;
 
 // IP is used to choose the IP of the server
-const IP: &str = "152.94.162.16:50051";
+const IP: &str = "152.94.162.17:50051";
 
 pub mod proto {
     tonic::include_proto!("proto"); // The string specified here must match the proto package name
