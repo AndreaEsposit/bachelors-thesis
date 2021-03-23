@@ -18,7 +18,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.18:50051" // bbchain2=152.94.162.12
+const IP = "152.94.162.17:50051" // bbchain2=152.94.162.12
 
 func main() {
 	// ---------------------------------------------------------
