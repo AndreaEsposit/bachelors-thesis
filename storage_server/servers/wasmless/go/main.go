@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -39,17 +38,17 @@ func NewStorageServer() *StorageServer {
 
 func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) (*pb.ReadResponse, error) {
 	filename := request.FileName
-	file := "./data/" + filename + ".json"
+	filepath := "./data/" + filename + ".json"
 
 	// defining a struct instance
 	var data Data
 
 	server.mu.Lock() // acquire lock
-	f, err := os.Open(file)
-	defer f.Close()
+	//f, err := os.Open(file)
+	content, err := os.ReadFile(filepath)
+
 	var response = pb.ReadResponse{}
-	if os.IsNotExist(err) {
-		server.mu.Unlock() // release lock since error
+	if err != nil { //os.IsNotExist(err)
 		timestamp := timestamppb.Timestamp{
 			Seconds: 0,
 			Nanos:   0,
@@ -61,9 +60,6 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 0
 
 	} else {
-		content, _ := io.ReadAll(f)
-		server.mu.Unlock() // release lock
-
 		// decoding data struct
 		// from json format
 		if e := json.Unmarshal(content, &data); e != nil {
@@ -81,6 +77,7 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 		response.Ok = 1
 
 	}
+	server.mu.Unlock() // release lock since error
 	return &response, nil
 }
 

@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
-
+using JsonSerializer = Utf8Json.JsonSerializer;
 
 namespace DotNetServer.Services
 {
@@ -121,7 +121,7 @@ namespace DotNetServer.Services
 
 
             wasmSingleton.Mu.WaitOne(); // take lock
-            File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.SerializeToUtf8Bytes(content));
+            File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content));
             wasmSingleton.Mu.ReleaseMutex(); // release lock
 
 
