@@ -44,7 +44,8 @@ var con1Mb = strings.Repeat(con1kb, 100)
 var nRequests = 0
 
 func main() {
-	IPs = []string{"152.94.162.17:50051", "152.94.162.18:50051", "152.94.162.19:50051"} //bbchain 6-8
+	IPs = []string{"152.94.162.17:50051"}
+	//IPs = []string{"152.94.162.17:50051", "152.94.162.18:50051", "152.94.162.19:50051"} //bbchain 6-8
 	//IPs = []string{"localhost:50051", "localhost:50052", "localhost:50053"} //bbchain 6-8
 
 	clients := map[int]pb.StorageClient{}
@@ -151,7 +152,7 @@ func singleWrite(client pb.StorageClient, message *pb.WriteRequest, activeReques
 
 	if benchmarkingType == 1 {
 		wg.Done()
-	} else {
+	} else if benchmarkingType == 2 {
 		mu.Lock()                 // take lock
 		if *activeRequests == 1 { // no need to wg.Done()
 			return
@@ -191,7 +192,7 @@ func singleRead(client pb.StorageClient, message *pb.ReadRequest, activeRequests
 	}
 	if benchmarkingType == 1 {
 		wg.Done()
-	} else {
+	} else if benchmarkingType == 2 {
 		mu.Lock()                 // take lock
 		if *activeRequests == 1 { // no need to wg.Done()
 			return
