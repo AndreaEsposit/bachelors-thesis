@@ -9,6 +9,7 @@ read -p "Number of last bbchain machine: " LB
 read -p "Number of clients per machine:" CLIENTS
 read -p "Number of requests per client:" REQUESTS
 read -p "Mode:" MODE
+read -p "Type:" TYPE
 
 # Task 1: 
 #   reset to head and pull master again to be sure that you have the latest build
@@ -16,7 +17,7 @@ pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/&&git reset --hard; git clean -f -d;
 
 # Task 2:
 #   launhes the benchmark on all the bbchain machines
-pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multiMarvin/&&chmod +x benchmark.sh&&./benchmark.sh $CLIENTS $REQUESTS $MODE"
+pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multiMarvin/&&chmod +x benchmark.sh&&./benchmark.sh $CLIENTS $REQUESTS $MODE $TYPE"
 
 # ready the use of the acquire script
 chmod +x acquireData.sh
