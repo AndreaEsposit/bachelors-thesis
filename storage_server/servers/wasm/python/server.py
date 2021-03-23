@@ -48,8 +48,6 @@ grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 # lock
 lock = threading.Lock()
 
-#counter = 0
-
 # copy_to_mem handles the copy of serialized data to the
 # Wasm's memory
 
@@ -112,9 +110,6 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
     def Write(self, request, context):
         return_message = call_wasm(
             write, request, storage_pb2.WriteResponse())
-        #counter += 1
-        # print("Request #" + str(counter))
-        print("hello")
         return return_message
 
 

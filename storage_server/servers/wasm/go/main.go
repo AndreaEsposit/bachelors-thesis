@@ -97,7 +97,6 @@ type StorageServer struct {
 	funcs  map[string]*wasmtime.Func
 	mu     sync.Mutex
 	pb.UnimplementedStorageServer
-	//counter int
 }
 
 // NewStorageServer initializes an EchoServer
@@ -119,9 +118,6 @@ func (server *StorageServer) Read(ctx context.Context, message *pb.ReadRequest) 
 // Write will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Write(ctx context.Context, message *pb.WriteRequest) (*pb.WriteResponse, error) {
 	wasmResponse := server.callWasm("write", message, &pb.WriteResponse{})
-	//server.counter++
-	//fmt.Printf("Request #%v\n", server.counter)
-	print("hello")
 	return wasmResponse.(*pb.WriteResponse), nil
 }
 
