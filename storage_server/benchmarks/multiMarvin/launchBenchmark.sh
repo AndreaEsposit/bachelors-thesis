@@ -22,4 +22,7 @@ pdsh -w jmcad@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multiMarvi
 # ready the use of the acquire script
 chmod +x acquireData.sh
 
+# ready the use of the killAllProcesses script
+chmod +x killAllProcesses.sh 
+
 echo 'Wait a min or so. Before you run the acquireData script'
