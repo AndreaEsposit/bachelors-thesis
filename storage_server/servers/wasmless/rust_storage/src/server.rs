@@ -5,8 +5,7 @@ use tonic::{transport::Server, Request, Response, Status};
 
 use prost_types::Timestamp;
 use serde_derive::{Deserialize, Serialize};
-use serde_json::json;
-use std::{fs::File, io, path::Path, sync::Mutex};
+use std::path::Path;
 
 pub mod proto {
     tonic::include_proto!("proto"); // The string specified here must match the proto package name
@@ -21,12 +20,12 @@ struct Content {
 }
 
 pub struct MyStorage {
-    mu: Mutex<i64>,
+    sem: tokio::sync::Semaphore,
 }
 
 impl MyStorage {
-    pub fn new(mu: Mutex<i64>) -> Self {
-        MyStorage { mu }
+    pub fn new(sem: tokio::sync::Semaphore) -> Self {
+        MyStorage { sem }
     }
 }
 
@@ -41,16 +40,16 @@ impl Storage for MyStorage {
         file_path.push_str(".json");
 
         let pathf = Path::new(&file_path);
-        let file = File::open(pathf);
 
-        let file_handle = self.mu.lock().expect("Mutex is poisoned"); // acquire the lock
+        // get the semaphore permit
+        let file_handle = self.sem.acquire().await;
+        let data = tokio::fs::read(pathf).await;
+
         let response: ReadResponse;
-        match file {
-            Ok(file) => {
-                let reader = io::BufReader::new(file);
-
+        match data {
+            Ok(data) => {
                 let file_content: Content =
-                    serde_json::from_reader(reader).expect("JSON was not well-formatted");
+                    serde_json::from_slice(&data).expect("JSON was not well-formatted");
 
                 let time: Option<Timestamp> = Some(Timestamp {
                     seconds: file_content.seconds,
@@ -94,16 +93,21 @@ impl Storage for MyStorage {
 
         let time = request.timestamp.expect("Error unwrapping the timestamp");
 
-        let data = json!({
-        "seconds" : time.seconds,
-        "nseconds": time.nanos,
-        "value": request.value,});
+        let data = Content {
+            seconds: time.seconds,
+            nseconds: time.nanos,
+            value: request.value,
+        };
 
-        // acquire the lock
-        let file_handle = self.mu.lock().expect("Mutex is poisoned");
+        let bdata = serde_json::to_vec_pretty(&data).unwrap();
+
+        // acquire Semaphore permit
+        let file_handle = self.sem.acquire().await;
+        //let file_handle = self.mu.lock().expect("Mutex is poisoned");
+
         //write to file
-        let write_result = write_to_file(file_path, data);
-        let write_result = match write_result {
+        let e = tokio::fs::write(file_path, bdata).await;
+        let e = match e {
             Ok(_result) => 1,
             Err(_e) => 0,
         };
@@ -111,22 +115,16 @@ impl Storage for MyStorage {
         drop(file_handle);
 
         // return response
-        let response: WriteResponse = WriteResponse { ok: write_result };
+        let response: WriteResponse = WriteResponse { ok: e };
 
         Ok(Response::new(response))
     }
 }
 
-fn write_to_file(file_path: String, data: serde_json::Value) -> Result<(), io::Error> {
-    let file = File::create(file_path)?;
-    let e = serde_json::to_writer_pretty(file, &data)?;
-    Ok(e)
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "152.94.162.17:50051".parse()?;
-    let mu = Mutex::new(1);
+    let mu = tokio::sync::Semaphore::new(1);
     let store_server = MyStorage::new(mu);
     println!("Server is running at {}\n", addr);
 
