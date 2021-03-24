@@ -123,7 +123,7 @@ impl Storage for MyStorage {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "152.94.162.17:50051".parse()?;
+    let addr = "152.94.162.16:50051".parse()?;
     let mu = tokio::sync::Semaphore::new(1);
     let store_server = MyStorage::new(mu);
     println!("Server is running at {}\n", addr);
