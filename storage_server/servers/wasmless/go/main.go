@@ -82,11 +82,11 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 }
 
 func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest) (*pb.WriteResponse, error) {
-	filename := request.FileName
+	filen := request.FileName
 	timestamp := request.Timestamp
 	val := request.Value
 
-	file := filename + ".json"
+	filename := filen + ".json"
 
 	data := Data{
 		Seconds:  timestamp.Seconds,
@@ -100,10 +100,14 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 
 	server.mu.Lock() // acquire lock
 	// write to file
-	result := os.WriteFile("./data/"+file, b, 0644)
-	server.mu.Unlock() // realease lock
+	file, err := os.Open("./data/" + filename)
+	check(err)
+	file.Write(b)
+	file.Sync()
+	file.Close()
 
-	check(result)
+	//result := os.WriteFile("./data/"+file, b, 0644)
+	server.mu.Unlock() // realease lock
 
 	// return response
 	response := &pb.WriteResponse{
