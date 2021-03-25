@@ -18,7 +18,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.18:50051" // bbchain2=152.94.162.12
+const IP = "152.94.162.17:50051" // bbchain2=152.94.162.12
 
 func main() {
 	// ---------------------------------------------------------
@@ -70,6 +70,11 @@ func main() {
 	funcs["write"] = instance.GetExport("store_data").Func()
 	funcs["read"] = instance.GetExport("read_data").Func()
 	mem := instance.GetExport("memory").Memory()
+
+	// fmt.Println("Querying memory size...")
+	// size := mem.Size()
+	// fmt.Println("Memory size (pages):", size)
+	// fmt.Println("Memory size (bytes):", mem.DataSize())
 
 	// -------------------------------------------------------------------------
 	// initialize the grpc server
@@ -136,6 +141,8 @@ func (server *StorageServer) copyToMemory(data []byte) int32 {
 
 	// casting pointer to int32
 	ptr32 := ptr.(int32)
+
+	// fmt.Printf("This is the pointer %v\n", ptr32)
 
 	// return raw memory backed by the WebAssembly memory as a byte slice
 	buf := server.memory.UnsafeData()

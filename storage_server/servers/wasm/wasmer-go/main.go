@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	pb "github.com/AndreaEsposit/practice/storage_server/proto"
-	"github.com/bytecodealliance/wasmtime-go"
 	"github.com/wasmerio/wasmer-go/wasmer"
 
 	"google.golang.org/grpc"
@@ -17,63 +16,65 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.18:50051" // bbchain2=152.94.162.12
+const IP = "152.94.162.17:50051" // bbchain2=152.94.162.12
 
 func main() {
 	// ---------------------------------------------------------
 	// initialize the WebAssembly module
 
-	wasmBytes, _ := ioutil.ReadFile("../wasm_module/storage_application.wasm")
+	// read wasm files
+	wasmBytes, err := ioutil.ReadFile("../wasm_module/storage_application.wasm")
+	check(err)
 
+	// define engine and store
 	engine := wasmer.NewEngine()
 	store := wasmer.NewStore(engine)
+
 	// Compiles the module
-	module, _ := wasmer.NewModule()
+	module, err := wasmer.NewModule(store, wasmBytes)
+	check(err)
 
 	// configure WASI imports to write stdout into a file.
-	wasiConfig, err := wasmer.NewWasiStateBuilder("storage").PreopenDirectory("./data").Finalize()
+	wasiConfig, err := wasmer.NewWasiStateBuilder("storage").MapDirectory(".", "./data").Finalize()
 	check(err)
 
 	// set the version to the same as in the WAT.
 
-	importObject, _ := wasiConfig.GenerateImportObject(store, module)
-	instance, _ := NewInstance(module, importObject)
-	start, _ := instance.Exports.GetWasiStartFunction()
-
-	start()
-
-	wasi, err := wasmtime.NewWasiInstance(store, wasiConfig, "wasi_snapshot_preview1")
+	importObject, err := wasiConfig.GenerateImportObject(store, module)
+	check(err)
+	instance, err := wasmer.NewInstance(module, importObject)
+	check(err)
+	start, err := instance.Exports.GetFunction("_initialize")
 	check(err)
 
-	// link WASI
-	err = linker.DefineWasi(wasi)
+	_, err = start()
 	check(err)
-
-	// create the WebAssembly-module
-	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/storage_application.wasm")
-	check(err)
-	instance, err := linker.Instantiate(module)
-	check(err)
-
-	// execute the _initialize function to give wasm access to the data folder
-	in := instance.GetExport("_initialize").Func()
-	_, err = in.Call()
-	if err != nil {
-		panic(err)
-	}
 
 	// export functions and memory from the WebAssembly module
-	funcs := make(map[string]*wasmtime.Func)
-	funcs["alloc"] = instance.GetExport("new_alloc").Func()
-	funcs["dealloc"] = instance.GetExport("new_dealloc").Func()
-	funcs["get_len"] = instance.GetExport("get_response_len").Func()
-	funcs["write"] = instance.GetExport("store_data").Func()
-	funcs["read"] = instance.GetExport("read_data").Func()
-	mem := instance.GetExport("memory").Memory()
+	funcs := make(map[string]func(...interface{}) (interface{}, error))
+
+	funcs["alloc"], err = instance.Exports.GetFunction("new_alloc")
+	check(err)
+	funcs["dealloc"], err = instance.Exports.GetFunction("new_dealloc")
+	check(err)
+	funcs["get_len"], err = instance.Exports.GetFunction("get_response_len")
+	check(err)
+	funcs["write"], err = instance.Exports.GetFunction("store_data")
+	check(err)
+	funcs["read"], err = instance.Exports.GetFunction("read_data")
+	check(err)
+	memory, err := instance.Exports.GetMemory("memory")
+	check(err)
+
+	// fmt.Println("Querying memory size...")
+	// size := memory.Size()
+	// fmt.Println("Memory size (pages):", size)
+	// fmt.Println("Memory size (pages as bytes):", size.ToBytes())
+	// fmt.Println("Memory size (bytes):", memory.DataSize())
 
 	// -------------------------------------------------------------------------
 	// initialize the grpc server
-	server := NewStorageServer(funcs, mem, stdoutPath)
+	server := NewStorageServer(funcs, memory)
 	lis, err := net.Listen("tcp", server.port)
 	if err != nil {
 		log.Fatal(err)
@@ -92,19 +93,17 @@ func main() {
 // StorageServer struct facilitates the managment of the server
 type StorageServer struct {
 	port   string
-	stdout string
-	memory *wasmtime.Memory
-	funcs  map[string]*wasmtime.Func
+	memory *wasmer.Memory
+	funcs  map[string]func(...interface{}) (interface{}, error)
 	mu     sync.Mutex
 	pb.UnimplementedStorageServer
 }
 
 // NewStorageServer initializes an EchoServer
-func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, stdout string) *StorageServer {
+func NewStorageServer(funcs map[string]func(...interface{}) (interface{}, error), memory *wasmer.Memory) *StorageServer {
 	return &StorageServer{
 		funcs:  funcs,
 		memory: memory,
-		stdout: stdout,
 		port:   IP, //152.94.1.102:50051 (Pitter3)
 	}
 }
@@ -131,14 +130,15 @@ func check(err error) {
 func (server *StorageServer) copyToMemory(data []byte) int32 {
 
 	// allocate memory in wasm
-	ptr, err := server.funcs["alloc"].Call(int32(len(data)))
+	ptr, err := server.funcs["alloc"](int32(len(data)))
 	check(err)
 
 	// casting pointer to int32
 	ptr32 := ptr.(int32)
+	//fmt.Printf("This is the pointer %v\n", ptr32)
 
 	// return raw memory backed by the WebAssembly memory as a byte slice
-	buf := server.memory.UnsafeData()
+	buf := server.memory.Data()
 	for i, v := range data {
 		buf[ptr32+int32(i)] = v
 	}
@@ -157,26 +157,26 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	ptr := server.copyToMemory(recivedBytes)
 	len := int32(len(recivedBytes))
 
-	resPtr, err := server.funcs[fn].Call(ptr, len)
+	resPtr, err := server.funcs[fn](ptr, len)
 	check(err)
 	resPtr32 := resPtr.(int32)
 
 	// deallocate request protobuf message
-	_, err = server.funcs["dealloc"].Call(ptr, len)
+	_, err = server.funcs["dealloc"](ptr, len)
 	check(err)
 
-	resultLen, err := server.funcs["get_len"].Call()
+	resultLen, err := server.funcs["get_len"]()
 	check(err)
 	intResLen := resultLen.(int32)
 
-	buf := server.memory.UnsafeData()
+	buf := server.memory.Data()
 	response := make([]byte, int(intResLen))
 	for i := range response {
 		response[i] = buf[resPtr32+int32(i)]
 	}
 
 	// deallocate response protobuf message
-	_, err = server.funcs["dealloc"].Call(resPtr32, intResLen)
+	_, err = server.funcs["dealloc"](resPtr32, intResLen)
 	check(err)
 
 	server.mu.Unlock()
