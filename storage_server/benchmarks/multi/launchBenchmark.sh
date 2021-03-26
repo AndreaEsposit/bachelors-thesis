@@ -1,5 +1,5 @@
 #!/usr/local/bin/bash
-# remember to: chmod +x launchBenchmark.sh; chmod +x acquireData.sh 
+# remember to: chmod +x launchBenchmark.sh;
 
 
 # run benchmark from FB server to LB server
@@ -20,5 +20,6 @@ pdsh -w andreaes@bbchain[$FB-$LB] "cd Practice/storage_server/benchmarks/multi/&
 
 # ready the use of the acquire script
 chmod +x acquireData.sh
+chmod +x killAllProcesses.sh
 
 echo 'Wait a min or so. Before you run the acquireData script'
