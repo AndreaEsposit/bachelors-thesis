@@ -1,48 +1,13 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using GrpcServer;
-using System.Text.Json;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System;
 using JsonSerializer = Utf8Json.JsonSerializer;
 
 namespace DotNetServer.Services
 {
-    // I use this to store the lock (not ideal to have 1 lock for all file writes, but it is ok for benchmarking, since we use only one file)
-
-    public sealed class WasmSingleton
-    {
-        private static WasmSingleton _instance; // tells us where we actaully saved the the object
-        private WasmSingleton() { }
-        public static WasmSingleton Instance
-
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new WasmSingleton();
-
-                }
-
-                return _instance;
-            }
-        }
-
-        // this keeps truck of the state of the instace
-        public bool instanceReady = false;
-
-        public readonly Mutex Mu = new Mutex();
-
-        public JsonSerializerOptions Options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-        };
-
-
-    }
     public class Content
     {
         public int nseconds { get; set; }
@@ -54,20 +19,10 @@ namespace DotNetServer.Services
     {
         //private readonly ILogger<StorageService> _logger;
 
-        private WasmSingleton wasmSingleton = WasmSingleton.Instance;
+        private readonly Object readWriteLock;
 
-
-        public StorageService() //ILogger<StorageService> logger
-        {
-            // Set up the logger
-            // _logger = logger;
-
-            if (!wasmSingleton.instanceReady)
-            {
-                wasmSingleton.instanceReady = true;
-
-                Console.WriteLine("I am ready for the benchmark!");
-            }
+        public StorageService(Object Lock){
+            this.readWriteLock = Lock;
         }
 
         public override Task<ReadResponse> Read(ReadRequest request, ServerCallContext context)
@@ -77,9 +32,11 @@ namespace DotNetServer.Services
 
             if (File.Exists($"./data/{request.FileName}.json"))
             {
-                wasmSingleton.Mu.WaitOne(); // take lock
-                Content content = JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
-                wasmSingleton.Mu.ReleaseMutex(); // release lock
+                Content content;
+                lock (readWriteLock)
+                {// take lock
+                    content = JsonSerializer.Deserialize<Content>(File.ReadAllText($@"./data/{request.FileName}.json"));
+                }
 
                 Timestamp time = new Timestamp
                 {
@@ -118,11 +75,10 @@ namespace DotNetServer.Services
                 value = request.Value,
             };
 
-
-
-            wasmSingleton.Mu.WaitOne(); // take lock
-            File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content));
-            wasmSingleton.Mu.ReleaseMutex(); // release lock
+            lock (readWriteLock)
+            { // take lock
+                File.WriteAllBytes($@"./data/{request.FileName}.json", JsonSerializer.Serialize(content));
+            } // release lock
 
 
             var result = new WriteResponse { Ok = 1 };
