@@ -83,6 +83,7 @@ func main() {
 	time.Sleep(10 * time.Second)
 
 	file, err := os.Create("result-client" + os.Args[3] + ".csv")
+	check(err)
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
