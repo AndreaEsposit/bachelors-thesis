@@ -26,6 +26,9 @@ import (
 
 var wg sync.WaitGroup
 
+// either benchmarking type 1 or 2
+var benchmarkingType = 0
+
 // IPs is used to specify the IPs that we will connect to
 var IPs []string
 
@@ -41,8 +44,9 @@ var con1Mb = strings.Repeat(con1kb, 100)
 var nRequests = 0
 
 func main() {
-	//IPs = []string{"localhost:50051", "localhost:50052", "localhost:50053", "localhost:50054"}
-	IPs = []string{"152.94.162.17:50051"} // 152.94.162.12 = bbchain2
+	IPs = []string{"152.94.162.18:50051"}
+	//IPs = []string{"152.94.162.17:50051", "152.94.162.18:50051", "152.94.162.19:50051"} //bbchain 6-8
+	//IPs = []string{"localhost:50051", "localhost:50052", "localhost:50053"} //bbchain 6-8
 
 	clients := map[int]pb.StorageClient{}
 
@@ -54,11 +58,16 @@ func main() {
 		clients[i] = pb.NewStorageClient(conn)
 	}
 
-	// get number of requests
 	var err error
+	// define benchmarking type
+	benchmarkingType, err = strconv.Atoi(os.Args[4])
+	check(err)
+
+	// get number of requests
 	nRequests, err = strconv.Atoi(os.Args[1])
 	check(err)
 
+	// define benchmarking mode (read/write)
 	mode := os.Args[2]
 
 	var latencies []time.Duration
@@ -123,9 +132,12 @@ func measureTime(latencies *[]time.Duration) func() {
 
 func mWrite(clients map[int]pb.StorageClient, message *pb.WriteRequest, latencies *[]time.Duration, times *[]int64) {
 	defer measureTime(latencies)()
+	activeRequests := len(clients)
+	var lock sync.Mutex
 	for _, client := range clients {
 		wg.Add(1)
-		go singleWrite(client, message)
+
+		go singleWrite(client, message, &activeRequests, &lock)
 
 	}
 	wg.Wait()
@@ -134,18 +146,34 @@ func mWrite(clients map[int]pb.StorageClient, message *pb.WriteRequest, latencie
 	*times = append(*times, time.Now().Unix())
 }
 
-func singleWrite(client pb.StorageClient, message *pb.WriteRequest) {
+func singleWrite(client pb.StorageClient, message *pb.WriteRequest, activeRequests *int, mu *sync.Mutex) {
 	_, err := client.Write(context.Background(), message)
 	check(err)
-	// done current request
-	wg.Done()
+
+	if benchmarkingType == 1 {
+		wg.Done()
+	} else if benchmarkingType == 2 {
+		mu.Lock() // take lock
+		if *activeRequests > 1 {
+			wg.Done()
+			*activeRequests-- // -1 active requests
+			fmt.Println(*activeRequests)
+			if *activeRequests == 1 {
+				wg.Done() // remove last one from waiting list
+			}
+		}
+		mu.Unlock() // relese lock
+	}
 }
 
 func mRead(clients map[int]pb.StorageClient, message *pb.ReadRequest, latencies *[]time.Duration, times *[]int64) {
 	defer measureTime(latencies)()
+	activeRequests := len(clients)
+	var lock sync.Mutex
 	for _, client := range clients {
 		wg.Add(1)
-		go singleRead(client, message)
+
+		go singleRead(client, message, &activeRequests, &lock)
 
 	}
 	wg.Wait()
@@ -154,12 +182,24 @@ func mRead(clients map[int]pb.StorageClient, message *pb.ReadRequest, latencies 
 	*times = append(*times, time.Now().Unix())
 }
 
-func singleRead(client pb.StorageClient, message *pb.ReadRequest) {
+func singleRead(client pb.StorageClient, message *pb.ReadRequest, activeRequests *int, mu *sync.Mutex) {
 	res, _ := client.Read(context.Background(), message)
 	if res.GetOk() == 0 {
 		err := errors.New("file is not present in one of the servers")
 		panic(err)
 	}
-	// done current request
-	wg.Done()
+	if benchmarkingType == 1 {
+		wg.Done()
+	} else if benchmarkingType == 2 {
+		mu.Lock() // take lock
+		if *activeRequests > 1 {
+			wg.Done()
+			*activeRequests-- // -1 active requests
+			fmt.Println(*activeRequests)
+			if *activeRequests == 1 {
+				wg.Done() // remove last one from waiting list
+			}
+		}
+		mu.Unlock() // relese lock
+	}
 }
