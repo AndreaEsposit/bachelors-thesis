@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wasmtime;
+using System.Threading;
 
 namespace DotNetServer.Services
 {
@@ -42,7 +43,7 @@ namespace DotNetServer.Services
         }
 
         // mutex lock to control wasm access
-        private readonly object wasmLock = new object();
+        private readonly Mutex mu = new Mutex();
 
         // our wasm instance that gets made with lazy initialization 
         private Instance instance;
@@ -58,8 +59,8 @@ namespace DotNetServer.Services
 
             byte[] result;
 
-            lock (wasmLock)
-            {
+            try{
+                mu.WaitOne();
                 var ptr = ((dynamic)instance).new_alloc(bytes.Length);
                 var len = bytes.Length;
 
@@ -84,6 +85,9 @@ namespace DotNetServer.Services
 
                 // deallocate repsonse protobud message form Wasmtime's memory
                 ((dynamic)instance).new_dealloc(resPtr, resultLen);
+            }
+            finally{
+                mu.ReleaseMutex();
             }
             message = parse<T>(result);
             return message is T value ? value : default(T);
