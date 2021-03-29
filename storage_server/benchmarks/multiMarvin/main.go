@@ -44,7 +44,7 @@ var con1Mb = strings.Repeat(con1kb, 100)
 var nRequests = 0
 
 func main() {
-	IPs = []string{"152.94.162.16:50051"}
+	IPs = []string{"152.94.162.17:50051"}
 	//IPs = []string{"152.94.162.17:50051", "152.94.162.18:50051", "152.94.162.19:50051"}
 	//IPs = []string{"localhost:50051", "localhost:50052", "localhost:50053"}
 
@@ -76,7 +76,7 @@ func main() {
 		if mode == "w" || strings.ToLower(mode) == "write" {
 			timep, err := ptypes.TimestampProto(time.Now())
 			check(err)
-			message := pb.WriteRequest{FileName: "test", Value: con1Mb, Timestamp: timep}
+			message := pb.WriteRequest{FileName: "test", Value: con10b, Timestamp: timep}
 
 			// run requests to all servers specified by IPs
 			mWrite(clients, &message, &latencies, &doneTimes)
