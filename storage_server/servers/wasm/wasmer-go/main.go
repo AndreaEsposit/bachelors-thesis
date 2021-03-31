@@ -28,15 +28,14 @@ func main() {
 
 	var engine *wasmer.Engine
 	// define engine and store
-	//if wasmer.IsCompilerAvailable(wasmer.LLVM) {
-
-	config := wasmer.NewConfig()
-	config.UseLLVMCompiler()
-	engine = wasmer.NewEngineWithConfig(config)
-	println("Using LLVM")
-	// } else {
-	// 	engine = wasmer.NewEngine()
-	// }
+	if wasmer.IsCompilerAvailable(wasmer.LLVM) {
+		config := wasmer.NewConfig()
+		config.UseLLVMCompiler()
+		engine = wasmer.NewEngineWithConfig(config)
+		println("Using LLVM")
+	} else {
+		engine = wasmer.NewEngine()
+	}
 
 	store := wasmer.NewStore(engine)
 
