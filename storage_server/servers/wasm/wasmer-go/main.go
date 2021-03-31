@@ -16,7 +16,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.16:50051" // bbchain2=152.94.162.12
+const IP = "localhost:50051" // bbchain2=152.94.162.12
 
 func main() {
 	// ---------------------------------------------------------
@@ -26,8 +26,18 @@ func main() {
 	wasmBytes, err := ioutil.ReadFile("../wasm_module/storage_application.wasm")
 	check(err)
 
+	var engine *wasmer.Engine
 	// define engine and store
-	engine := wasmer.NewEngine()
+	//if wasmer.IsCompilerAvailable(wasmer.LLVM) {
+
+	config := wasmer.NewConfig()
+	config.UseLLVMCompiler()
+	engine = wasmer.NewEngineWithConfig(config)
+	println("Using LLVM")
+	// } else {
+	// 	engine = wasmer.NewEngine()
+	// }
+
 	store := wasmer.NewStore(engine)
 
 	// Compiles the module
