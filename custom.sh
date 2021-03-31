@@ -12,8 +12,3 @@ tar xzvf release.tar.gz -C libwasmer
 export CGO_CFLAGS="-I$(pwd)/wasmer/packaged/include"
 export CGO_LDFLAGS="-Wl,-rpath,$(pwd)/../wasmer/target/release/ -L/$(pwd)/../wasmer/target/release/ -lwasmer_c_api"
 cd wasmer && go test -v -tags custom_wasmer_runtime
-
-
-$ export CGO_CFLAGS="-I$(pwd)/libwasmer/include/"
-$ export CGO_LDFLAGS="-Wl,-rpath,/path/to/target/release/ -L/path/to/target/release/ -lwasmer_c_api"
-$ cd wasmer && go test -v -tags custom_wasmer_runtime
