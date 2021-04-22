@@ -14,7 +14,7 @@ wasmLocation = "../wasm_module/storage_application.wasm"
 preOpenedFile = "./data"
 
 # utilized to store exported Wasm functions
-exportedWasmFunctions = {}
+instanceExports = {}
 
 # gRPC related variables
 grpc_host = u'152.94.162.16'  # 152.94.162.16 bbchain6
@@ -52,13 +52,13 @@ def WasmInstantiate(functions, wasmLocation, preOpenedDir):
     init()
 
     # Export functions and memory from the WebAssembly module
-    exportedWasmFunctions["alloc"] = instance_linking.exports["new_alloc"]
-    exportedWasmFunctions["dealloc"] = instance_linking.exports["new_dealloc"]
-    exportedWasmFunctions["get_len"] = instance_linking.exports["get_response_len"]
-    exportedWasmFunctions["memory"] = instance_linking.exports["memory"]
+    instanceExports["alloc"] = instance_linking.exports["new_alloc"]
+    instanceExports["dealloc"] = instance_linking.exports["new_dealloc"]
+    instanceExports["get_len"] = instance_linking.exports["get_response_len"]
+    instanceExports["memory"] = instance_linking.exports["memory"]
 
     for name in functions:
-        exportedWasmFunctions[name] = instance_linking.exports[name]
+        instanceExports[name] = instance_linking.exports[name]
 
     print("INSTANTIATED")
 
@@ -67,10 +67,10 @@ def WasmInstantiate(functions, wasmLocation, preOpenedDir):
 # Wasm's memory
 def copy_to_memory(sdata: bytearray):
     # allocate memory in wasm
-    ptr = exportedWasmFunctions["alloc"](len(sdata))
+    ptr = instanceExports["alloc"](len(sdata))
 
     for i, v in enumerate(sdata):
-        exportedWasmFunctions["memory"].data_ptr[ptr + i] = v
+        instanceExports["memory"].data_ptr[ptr + i] = v
 
     return ptr
 
@@ -83,22 +83,22 @@ def call_wasm(func, request, return_message):
     ptr = copy_to_memory(bytes_as_string)
     length = len(bytes_as_string)
 
-    result_ptr = exportedWasmFunctions[func](ptr, length)
+    result_ptr = instanceExports[func](ptr, length)
     res_ptr_int = int(result_ptr)
 
     # deallocate request protobuf message
-    exportedWasmFunctions["dealloc"](ptr, length)
+    instanceExports["dealloc"](ptr, length)
 
-    result_len = exportedWasmFunctions["get_len"]()
+    result_len = instanceExports["get_len"]()
     # res_len_int = int(result_len)
 
     response = bytearray(result_len)
 
     for i in range(result_len):
-        response[i] = exportedWasmFunctions["memory"].data_ptr[result_ptr+i]
+        response[i] = instanceExports["memory"].data_ptr[result_ptr+i]
 
     # deallocate response protobuf message
-    exportedWasmFunctions["dealloc"](result_ptr, result_len)
+    instanceExports["dealloc"](result_ptr, result_len)
 
     lock.release()  # release lock
 
