@@ -179,9 +179,14 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	intResLen := resultLen.(int32)
 
 	buf := server.memory.Data()
-	response := make([]byte, int(intResLen))
-	for i := range response {
-		response[i] = buf[resPtr32+int32(i)]
+	// response := make([]byte, int(intResLen))
+	// for i := range response {
+	// 	response[i] = buf[resPtr32+int32(i)]
+	// }
+
+	// unmarshalling
+	if err := proto.Unmarshal(buf[resPtr32:resPtr32+intResLen], responseMessage); err != nil {
+		log.Fatalln("Failed to parse message: ", err)
 	}
 
 	// deallocate response protobuf message
@@ -189,11 +194,6 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	check(err)
 
 	server.mu.Unlock()
-
-	// unmarshalling
-	if err := proto.Unmarshal(response, responseMessage); err != nil {
-		log.Fatalln("Failed to parse message: ", err)
-	}
 
 	return responseMessage
 }

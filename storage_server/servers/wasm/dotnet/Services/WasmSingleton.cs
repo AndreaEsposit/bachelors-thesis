@@ -9,14 +9,14 @@ namespace DotNetServer.Services
 {
     public class WasmSingleton
     {
-        public WasmSingleton(string[] services, string wasmLocation)
+        public WasmSingleton(string[] services, string wasmLocation, string preOpenedDir)
         {
             using var engine = new Engine();
             using var store = new Store(engine);
 
             // pass access to data directory to this Wasm module
             WasiConfiguration wasiConfiguration = new WasiConfiguration();
-            wasiConfiguration.WithPreopenedDirectory("./data", ".");
+            wasiConfiguration.WithPreopenedDirectory(preOpenedDir, ".");
 
             // Create the WebAssembly-module
             using var module = Module.FromFile(engine, wasmLocation);

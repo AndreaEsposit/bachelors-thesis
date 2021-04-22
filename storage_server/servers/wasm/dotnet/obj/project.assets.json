@@ -787,11 +787,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/jiofrost/practice/storage_server/servers/wasm/DotNetServer/DotNetServer.csproj",
+      "projectUniqueName": "/home/jiofrost/practice/storage_server/servers/wasm/dotnet/DotNetServer.csproj",
       "projectName": "DotNetServer",
-      "projectPath": "/home/jiofrost/practice/storage_server/servers/wasm/DotNetServer/DotNetServer.csproj",
+      "projectPath": "/home/jiofrost/practice/storage_server/servers/wasm/dotnet/DotNetServer.csproj",
       "packagesPath": "/home/jiofrost/.nuget/packages/",
-      "outputPath": "/home/jiofrost/practice/storage_server/servers/wasm/DotNetServer/obj/",
+      "outputPath": "/home/jiofrost/practice/storage_server/servers/wasm/dotnet/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/jiofrost/.nuget/NuGet/NuGet.Config"
@@ -845,7 +845,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.201/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.202/RuntimeIdentifierGraph.json"
       }
     }
   }

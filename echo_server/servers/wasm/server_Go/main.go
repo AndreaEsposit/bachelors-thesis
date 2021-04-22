@@ -111,14 +111,14 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 
 	// copy the bytes to a new buffer
 	buf := server.memory.UnsafeData()
-	newContent := make([]byte, newMessageLen)
-	for i := range newContent {
-		newContent[i] = buf[newPtr32+int32(i)]
-	}
+	// newContent := make([]byte, newMessageLen)
+	// for i := range newContent {
+	// 	newContent[i] = buf[newPtr32+int32(i)]
+	// }
 
 	// make new message
 	returnMessage := &pb.EchoMessage{}
-	if err := proto.Unmarshal(newContent, returnMessage); err != nil {
+	if err := proto.Unmarshal(buf[newPtr32:newPtr32+newMessageLen], returnMessage); err != nil {
 		log.Fatalln("Failed to parse message: ", err)
 	}
 

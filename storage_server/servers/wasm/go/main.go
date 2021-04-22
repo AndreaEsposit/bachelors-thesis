@@ -20,10 +20,14 @@ import (
 // IP is used to choose the IP of the server
 const IP = "152.94.162.18:50051" // bbchain2=152.94.162.12
 
-func main() {
-	// ---------------------------------------------------------
-	// initialize the WebAssembly module
-	// stdout to print WASI text
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+// WasmInstantiation instatiates a Wasm module given a .wasm file location and a list of the functions that need to be exported
+func WasmInstantiation(functions []string, wasmLocation string, preOpenedDir string) (funcMap map[string]*wasmtime.Func, memory *wasmtime.Memory) {
 	dir, err := ioutil.TempDir("", "out")
 	check(err)
 	defer os.RemoveAll(dir)
@@ -38,7 +42,7 @@ func main() {
 	wasiConfig.SetStdoutFile(stdoutPath)
 
 	// pass access to this folder directory to the Wasm module
-	err = wasiConfig.PreopenDir("./data", ".")
+	err = wasiConfig.PreopenDir(preOpenedDir, ".")
 	check(err)
 
 	// set the version to the same as in the WAT.
@@ -50,7 +54,7 @@ func main() {
 	check(err)
 
 	// create the WebAssembly-module
-	module, err := wasmtime.NewModuleFromFile(store.Engine, "../wasm_module/storage_application.wasm")
+	module, err := wasmtime.NewModuleFromFile(store.Engine, wasmLocation)
 	check(err)
 	instance, err := linker.Instantiate(module)
 	check(err)
@@ -67,37 +71,18 @@ func main() {
 	funcs["alloc"] = instance.GetExport("new_alloc").Func()
 	funcs["dealloc"] = instance.GetExport("new_dealloc").Func()
 	funcs["get_len"] = instance.GetExport("get_response_len").Func()
-	funcs["write"] = instance.GetExport("store_data").Func()
-	funcs["read"] = instance.GetExport("read_data").Func()
+
+	for _, name := range functions {
+		funcs[name] = instance.GetExport(name).Func()
+	}
 	mem := instance.GetExport("memory").Memory()
 
-	// fmt.Println("Querying memory size...")
-	// size := mem.Size()
-	// fmt.Println("Memory size (pages):", size)
-	// fmt.Println("Memory size (bytes):", mem.DataSize())
-
-	// -------------------------------------------------------------------------
-	// initialize the grpc server
-	server := NewStorageServer(funcs, mem, stdoutPath)
-	lis, err := net.Listen("tcp", server.port)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	grpcServer := grpc.NewServer()
-
-	pb.RegisterStorageServer(grpcServer, server)
-	fmt.Printf("Server is running at %v.\n", server.port)
-
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatal(err)
-	}
+	return funcs, mem
 }
 
 // StorageServer struct facilitates the managment of the server
 type StorageServer struct {
 	port   string
-	stdout string
 	memory *wasmtime.Memory
 	funcs  map[string]*wasmtime.Func
 	mu     sync.Mutex
@@ -105,31 +90,24 @@ type StorageServer struct {
 }
 
 // NewStorageServer initializes an EchoServer
-func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, stdout string) *StorageServer {
+func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory) *StorageServer {
 	return &StorageServer{
 		funcs:  funcs,
 		memory: memory,
-		stdout: stdout,
 		port:   IP, //152.94.1.102:50051 (Pitter3)
 	}
 }
 
 // Read will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Read(ctx context.Context, message *pb.ReadRequest) (*pb.ReadResponse, error) {
-	wasmResponse := server.callWasm("read", message, &pb.ReadResponse{})
+	wasmResponse := server.callWasm("read_data", message, &pb.ReadResponse{})
 	return wasmResponse.(*pb.ReadResponse), nil
 }
 
 // Write will forward the protobuf message to the WebAssembly module and return what the module returns
 func (server *StorageServer) Write(ctx context.Context, message *pb.WriteRequest) (*pb.WriteResponse, error) {
-	wasmResponse := server.callWasm("write", message, &pb.WriteResponse{})
+	wasmResponse := server.callWasm("store_data", message, &pb.WriteResponse{})
 	return wasmResponse.(*pb.WriteResponse), nil
-}
-
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 // copyToMemory handles the copy of serialized data to the Wasm's memory
@@ -142,7 +120,7 @@ func (server *StorageServer) copyToMemory(data []byte) int32 {
 	// casting pointer to int32
 	ptr32 := ptr.(int32)
 
-	// fmt.Printf("This is the pointer %v\n", ptr32)
+	//fmt.Printf("This is the pointer %v\n", ptr32)
 
 	// return raw memory backed by the WebAssembly memory as a byte slice
 	buf := server.memory.UnsafeData()
@@ -177,9 +155,14 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	intResLen := resultLen.(int32)
 
 	buf := server.memory.UnsafeData()
-	response := make([]byte, int(intResLen))
-	for i := range response {
-		response[i] = buf[resPtr32+int32(i)]
+	// response := make([]byte, int(intResLen))
+	// for i := range response {
+	// 	response[i] = buf[resPtr32+int32(i)]
+	// }
+
+	// unmarshalling
+	if err := proto.Unmarshal(buf[resPtr32:resPtr32+intResLen], responseMessage); err != nil {
+		log.Fatalln("Failed to parse message: ", err)
 	}
 
 	// deallocate response protobuf message
@@ -188,10 +171,32 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 
 	server.mu.Unlock()
 
-	// unmarshalling
-	if err := proto.Unmarshal(response, responseMessage); err != nil {
-		log.Fatalln("Failed to parse message: ", err)
+	return responseMessage
+}
+
+// run the gRPC server
+func main() {
+	// ---------------------------------------------------------
+	// initialize the gRPC instance
+	functionsToImp := []string{"store_data", "read_data"}
+	wasmLocation := "../wasm_module/storage_application.wasm"
+
+	funcs, mem := WasmInstantiation(functionsToImp, wasmLocation, "./data")
+
+	// -------------------------------------------------------------------------
+	// initialize the grpc server
+	server := NewStorageServer(funcs, mem)
+	lis, err := net.Listen("tcp", server.port)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	return responseMessage
+	grpcServer := grpc.NewServer()
+
+	pb.RegisterStorageServer(grpcServer, server)
+	fmt.Printf("Server is running at %v.\n", server.port)
+
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatal(err)
+	}
 }

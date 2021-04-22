@@ -16,8 +16,9 @@ namespace DotNetServer
         {
             string[] functions = {"store_data", "read_data"}; //define functions to import 
             var wasmLocation = "../wasm_module/storage_application.wasm"; //define WebAssembly module location
+            var preOpenedDir = "./data"; //define the pre-opened directory
             services.AddGrpc();
-            services.AddSingleton(new WasmSingleton(functions, wasmLocation));
+            services.AddSingleton(new WasmSingleton(functions, wasmLocation, preOpenedDir));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

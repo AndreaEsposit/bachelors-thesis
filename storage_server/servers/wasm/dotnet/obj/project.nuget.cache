@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "pFeOxZO1jd77u/enGU56UlALi8ao1Aow9yqpG0IhOa/zYEbhAib0NvE8dubfiP1qERecbi+A/3OTamZlM8IGGg==",
+  "dgSpecHash": "3zkn7mIeecmmaItzeql/S0ds4jfntRzUDaFimVWTtc9EDd2Ns4W80sdc7TV3j0VkT+TWdaelBhb2kncm/L/jjg==",
   "success": true,
-  "projectFilePath": "/home/jiofrost/practice/storage_server/servers/wasm/DotNetServer/DotNetServer.csproj",
+  "projectFilePath": "/home/jiofrost/practice/storage_server/servers/wasm/dotnet/DotNetServer.csproj",
   "expectedPackageFiles": [
     "/home/jiofrost/.nuget/packages/google.protobuf/3.15.5/google.protobuf.3.15.5.nupkg.sha512",
     "/home/jiofrost/.nuget/packages/grpc.aspnetcore/2.36.0/grpc.aspnetcore.2.36.0.nupkg.sha512",
