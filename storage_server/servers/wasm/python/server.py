@@ -24,10 +24,11 @@ grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 # lock
 lock = threading.Lock()
 
-# WasmInstantiation instatiates a Wasm module given a .wasm file location and a list of the functions that need to be exported
+# WasmInstantiate instatiates a Wasm module given a .wasm file location and a list
+# of the functions that need to be exported
 
 
-def WasmInstantiation(functions, wasmLocation, preOpenedDir):
+def WasmInstantiate(functions, wasmLocation, preOpenedDir):
     # Wasmtime Embedding
     store = wasmtime.Store()
 
@@ -144,5 +145,5 @@ class Server:
 
 
 if __name__ == "__main__":
-    WasmInstantiation(functionsToImp, wasmLocation, preOpenedFile)
+    WasmInstantiate(functionsToImp, wasmLocation, preOpenedFile)
     Server.run()

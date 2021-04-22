@@ -26,8 +26,8 @@ func check(err error) {
 	}
 }
 
-// WasmInstantiation instatiates a Wasm module given a .wasm file location and a list of the functions that need to be exported
-func WasmInstantiation(functions []string, wasmLocation string, preOpenedDir string) (funcMap map[string]*wasmtime.Func, memory *wasmtime.Memory) {
+// WasmInstantiate instatiates a Wasm module given a .wasm file location and a list of the functions that need to be exported
+func WasmInstantiate(functions []string, wasmLocation string, preOpenedDir string) (funcMap map[string]*wasmtime.Func, memory *wasmtime.Memory) {
 	dir, err := ioutil.TempDir("", "out")
 	check(err)
 	defer os.RemoveAll(dir)
@@ -181,7 +181,7 @@ func main() {
 	functionsToImp := []string{"store_data", "read_data"}
 	wasmLocation := "../wasm_module/storage_application.wasm"
 
-	funcs, mem := WasmInstantiation(functionsToImp, wasmLocation, "./data")
+	funcs, mem := WasmInstantiate(functionsToImp, wasmLocation, "./data")
 
 	// -------------------------------------------------------------------------
 	// initialize the grpc server
