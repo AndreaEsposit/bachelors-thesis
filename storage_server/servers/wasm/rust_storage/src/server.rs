@@ -160,11 +160,10 @@ impl WasmActor {
         let w_get_len = instance
             .get_func("get_response_len")
             .expect("export wasn't a function");
+        // --------------------
         let w_write = instance
             .get_func("store_data")
             .expect("export wasn't a function");
-
-        // --------------------
         let w_read = instance
             .get_func("read_data")
             .expect("export wasn't a function");

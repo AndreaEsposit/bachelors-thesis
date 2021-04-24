@@ -8,15 +8,39 @@ using System.Threading;
 namespace DotNetServer.Services
 {
     public class WasmSingleton
-    {
-        public WasmSingleton(string[] services, string wasmLocation, string preOpenedDir)
+    {  
+        public WasmSingleton(string[] services, string wasmLocation, Dictionary<string, string> preOpenedDirs = null, string stdoutPath = null, string stdinPath = null, string stderrPath = null)
         {
             using var engine = new Engine();
             using var store = new Store(engine);
 
             // pass access to data directory to this Wasm module
             WasiConfiguration wasiConfiguration = new WasiConfiguration();
-            wasiConfiguration.WithPreopenedDirectory(preOpenedDir, ".");
+
+
+            if (stdoutPath != null)
+            {
+                wasiConfiguration.WithStandardOutput(stdoutPath);
+            }
+            if (stdinPath != null)
+            {
+                wasiConfiguration.WithStandardInput(stdinPath);
+            }
+            if (stderrPath != null)
+            {
+                wasiConfiguration.WithStandardError(stderrPath);
+            }
+
+
+            if (preOpenedDirs != null){
+                foreach (KeyValuePair<string, string> entry in preOpenedDirs)
+                {
+                    wasiConfiguration.WithPreopenedDirectory(entry.Key, entry.Value);
+
+                }
+
+            }
+           
 
             // Create the WebAssembly-module
             using var module = Module.FromFile(engine, wasmLocation);

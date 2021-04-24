@@ -18,7 +18,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.18:50051" // bbchain2=152.94.162.12
+const IP = "localhost:50051" // bbchain2=152.94.162.12
 
 func check(err error) {
 	if err != nil {
@@ -27,23 +27,34 @@ func check(err error) {
 }
 
 // WasmInstantiate instatiates a Wasm module given a .wasm file location and a list of the functions that need to be exported
-func WasmInstantiate(functions []string, wasmLocation string, preOpenedDir string) (funcMap map[string]*wasmtime.Func, memory *wasmtime.Memory) {
-	dir, err := ioutil.TempDir("", "out")
-	check(err)
-	defer os.RemoveAll(dir)
-	stdoutPath := filepath.Join(dir, "stdout")
-
+func WasmInstantiate(functions []string, wasmLocation string, preOpenedDirs map[string]string, stdoutPath string, stdinPath string, stderrPath string) (funcMap map[string]*wasmtime.Func, memory *wasmtime.Memory) {
 	engine := wasmtime.NewEngine()
 	store := wasmtime.NewStore(engine)
 	linker := wasmtime.NewLinker(store)
 
 	// configure WASI imports to write stdout into a file.
 	wasiConfig := wasmtime.NewWasiConfig()
-	wasiConfig.SetStdoutFile(stdoutPath)
+	if stdoutPath != "" {
+		err := wasiConfig.SetStdoutFile(stdoutPath)
+		check(err)
+	}
+	if stdinPath != "" {
+		err := wasiConfig.SetStdinFile(stdinPath)
+		check(err)
+	}
+	if stderrPath != "" {
+		err := wasiConfig.SetStderrFile(stderrPath)
+		check(err)
+	}
 
 	// pass access to this folder directory to the Wasm module
-	err = wasiConfig.PreopenDir(preOpenedDir, ".")
-	check(err)
+	if len(preOpenedDirs) != 0 {
+		for dir, alias := range preOpenedDirs {
+			err := wasiConfig.PreopenDir(dir, alias)
+			check(err)
+		}
+
+	}
 
 	// set the version to the same as in the WAT.
 	wasi, err := wasmtime.NewWasiInstance(store, wasiConfig, "wasi_snapshot_preview1")
@@ -59,7 +70,7 @@ func WasmInstantiate(functions []string, wasmLocation string, preOpenedDir strin
 	instance, err := linker.Instantiate(module)
 	check(err)
 
-	// execute the _initialize function to give wasm access to the data folder
+	// execute the _initialize function to give wasm access to your custom Wasi configurations
 	in := instance.GetExport("_initialize").Func()
 	_, err = in.Call()
 	if err != nil {
@@ -180,8 +191,15 @@ func main() {
 	// initialize the gRPC instance
 	functionsToImp := []string{"store_data", "read_data"}
 	wasmLocation := "../wasm_module/storage_application.wasm"
+	dirs := make(map[string]string)
+	dirs["./data"] = "."
 
-	funcs, mem := WasmInstantiate(functionsToImp, wasmLocation, "./data")
+	dir, err := ioutil.TempDir("", "out")
+	check(err)
+	defer os.RemoveAll(dir)
+	stdoutPath := filepath.Join(dir, "stdout")
+
+	funcs, mem := WasmInstantiate(functionsToImp, wasmLocation, dirs, stdoutPath, "", "")
 
 	// -------------------------------------------------------------------------
 	// initialize the grpc server

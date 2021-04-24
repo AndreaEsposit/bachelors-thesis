@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using System.Collections.Generic;
 
 namespace DotNetServer
 {
@@ -16,9 +16,10 @@ namespace DotNetServer
         {
             string[] functions = {"store_data", "read_data"}; //define functions to import 
             var wasmLocation = "../wasm_module/storage_application.wasm"; //define WebAssembly module location
-            var preOpenedDir = "./data"; //define the pre-opened directory
+            Dictionary<string, string> preOpenedDirs = new Dictionary<string, string>();
+            preOpenedDirs.Add("./data", ".");
             services.AddGrpc();
-            services.AddSingleton(new WasmSingleton(functions, wasmLocation, preOpenedDir));
+            services.AddSingleton(new WasmSingleton(functions, wasmLocation, preOpenedDirs));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

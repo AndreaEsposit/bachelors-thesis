@@ -11,13 +11,13 @@ import storage_pb2
 
 functionsToImp = ["store_data", "read_data"]
 wasmLocation = "../wasm_module/storage_application.wasm"
-preOpenedFile = "./data"
+preOpenedFile = {"./data": "."}
 
 # utilized to store exported Wasm functions
 instanceExports = {}
 
 # gRPC related variables
-grpc_host = u'152.94.162.16'  # 152.94.162.16 bbchain6
+grpc_host = u'localhost'  # 152.94.162.16 bbchain6
 grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
@@ -28,19 +28,29 @@ lock = threading.Lock()
 # of the functions that need to be exported
 
 
-def WasmInstantiate(functions, wasmLocation, preOpenedDir):
+def WasmInstantiate(functions, wasmLocation, preOpenedDirs={}, stdoutPath="", stdinPath="", stderrPat=""):
     # Wasmtime Embedding
     store = wasmtime.Store()
-
     linker = wasmtime.Linker(store)
+
     wasi_config = wasmtime.WasiConfig()
-    path = Path(__file__).parent / "./data"
-    wasi_config.preopen_dir(str(path), ".")
+
+    if len(preOpenedDirs) != 0:
+        for key, value in preOpenedDirs.items():
+            path = Path(__file__).parent / key
+            wasi_config.preopen_dir(str(path), value)
+    if stdoutPath != "":
+        wasi_config.stdout_file(stdoutPath)
+    if stdinPath != "":
+        wasi_config.stdin_file(stdinPath)
+    if stderrPat != "":
+        wasi_config.stderr_file(stderrPat)
+
     wasi = wasmtime.WasiInstance(store, "wasi_snapshot_preview1", wasi_config)
     linker.define_wasi(wasi)
 
     # Load and compile the WebAssembly-module
-    path = Path(__file__).parent / "../wasm_module/storage_application.wasm"
+    path = Path(__file__).parent / wasmLocation
     module_linking = wasmtime.Module.from_file(store.engine, path)
 
     # Instantiate the module which only uses WASI
