@@ -1,2 +1,2 @@
-# bachelors-thesis
+# Bachelor's Thesis
 Practice projects
