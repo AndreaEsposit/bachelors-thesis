@@ -7,12 +7,12 @@ import (
 	"os"
 	"strings"
 
-	pb "github.com/AndreaEsposit/practice/echo_server/proto"
+	pb "github.com/AndreaEsposit/bachelors-thesis/echo_server/proto"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	conn, err := grpc.Dial("152.94.1.100:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	check(err)
 
 	client := pb.NewEchoClient(conn)

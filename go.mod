@@ -1,4 +1,4 @@
-module github.com/AndreaEsposit/practice
+module github.com/AndreaEsposit/bachelors-thesis
 
 go 1.15
 

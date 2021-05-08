@@ -8,7 +8,7 @@ import (
 	"net"
 	"sync"
 
-	pb "github.com/AndreaEsposit/practice/storage_server/proto"
+	pb "github.com/AndreaEsposit/bachelors-thesis/storage_server/proto"
 	"github.com/wasmerio/wasmer-go/wasmer"
 
 	"google.golang.org/grpc"
@@ -113,7 +113,7 @@ func NewStorageServer(funcs map[string]func(...interface{}) (interface{}, error)
 	return &StorageServer{
 		funcs:  funcs,
 		memory: memory,
-		port:   IP, //152.94.1.102:50051 (Pitter3)
+		port:   IP,
 	}
 }
 
@@ -179,10 +179,6 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	intResLen := resultLen.(int32)
 
 	buf := server.memory.Data()
-	// response := make([]byte, int(intResLen))
-	// for i := range response {
-	// 	response[i] = buf[resPtr32+int32(i)]
-	// }
 
 	// unmarshalling
 	if err := proto.Unmarshal(buf[resPtr32:resPtr32+intResLen], responseMessage); err != nil {

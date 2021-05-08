@@ -12,7 +12,6 @@ pub mod proto {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = EchoClient::connect("http://[::1]:50051").await?;
 
-    //let args: Vec<String> = env::args().collect();
     println!("Exit/exit' to exit this program ");
     loop {
         println!("Message to send: ");

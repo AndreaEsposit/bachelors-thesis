@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/AndreaEsposit/practice/echo_server/proto"
+	pb "github.com/AndreaEsposit/bachelors-thesis/echo_server/proto"
 	"google.golang.org/grpc"
 )
 
@@ -34,7 +34,7 @@ type EchoServer struct {
 
 func NewEchoServer() *EchoServer {
 	return &EchoServer{
-		port: "152.94.1.102:50051", // 152.94.1.102, Pitter 3 ip address
+		port: "152.94.1.102:50051",
 	}
 }
 
@@ -45,5 +45,4 @@ func (echo *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*pb.
 	newMessage := &pb.EchoMessage{Content: message.Content}
 
 	return newMessage, nil
-
 }

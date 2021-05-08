@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/AndreaEsposit/practice/storage_server/proto"
+	pb "github.com/AndreaEsposit/bachelors-thesis/storage_server/proto"
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"

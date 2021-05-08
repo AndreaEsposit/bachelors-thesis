@@ -17,7 +17,7 @@ preOpenedFile = {"./data": "."}
 instanceExports = {}
 
 # gRPC related variables
-grpc_host = u'localhost'  # 152.94.162.16 bbchain6
+grpc_host = u'localhost'
 grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 

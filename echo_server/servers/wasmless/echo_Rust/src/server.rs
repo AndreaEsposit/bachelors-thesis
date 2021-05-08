@@ -16,7 +16,6 @@ impl Echo for MyEcho {
     // Accept request of type Message
     async fn send(&self, request: Request<EchoMessage>) -> Result<Response<EchoMessage>, Status> {
         // Return an instance of type Message
-
         let message: String = request.into_inner().content;
         println!("Server recived '{}'", message);
 

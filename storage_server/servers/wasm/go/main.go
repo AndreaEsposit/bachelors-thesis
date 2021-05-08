@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	pb "github.com/AndreaEsposit/practice/storage_server/proto"
+	pb "github.com/AndreaEsposit/bachelors-thesis/storage_server/proto"
 	"github.com/bytecodealliance/wasmtime-go"
 
 	"google.golang.org/grpc"
@@ -166,10 +166,6 @@ func (server *StorageServer) callWasm(fn string, requestMessage proto.Message, r
 	intResLen := resultLen.(int32)
 
 	buf := server.memory.UnsafeData()
-	// response := make([]byte, int(intResLen))
-	// for i := range response {
-	// 	response[i] = buf[resPtr32+int32(i)]
-	// }
 
 	// unmarshalling
 	if err := proto.Unmarshal(buf[resPtr32:resPtr32+intResLen], responseMessage); err != nil {

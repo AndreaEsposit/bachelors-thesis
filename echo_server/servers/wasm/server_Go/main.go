@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	pb "github.com/AndreaEsposit/practice/echo_server/proto"
+	pb "github.com/AndreaEsposit/bachelors-thesis/echo_server/proto"
 	"github.com/bytecodealliance/wasmtime-go"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
@@ -63,7 +63,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterEchoServer(grpcServer, server)
-	fmt.Printf("Server is running at :%v.\n", server.port)
+	fmt.Printf("Server is running at %v.\n", server.port)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal(err)
@@ -86,7 +86,7 @@ func NewEchoServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory, std
 		funcs:  funcs,
 		memory: memory,
 		stdout: stdout,
-		port:   "152.94.162.12:50051", //152.94.1.102:50051 (Pitter3)
+		port:   "localhost:50051",
 	}
 }
 
@@ -109,13 +109,7 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 	check(err)
 	newMessageLen := nml.(int32)
 
-	// copy the bytes to a new buffer
 	buf := server.memory.UnsafeData()
-	// newContent := make([]byte, newMessageLen)
-	// for i := range newContent {
-	// 	newContent[i] = buf[newPtr32+int32(i)]
-	// }
-
 	// make new message
 	returnMessage := &pb.EchoMessage{}
 	if err := proto.Unmarshal(buf[newPtr32:newPtr32+newMessageLen], returnMessage); err != nil {
@@ -130,9 +124,7 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 	// out, err := ioutil.ReadFile(echo.stdout)
 	// check(err)
 	// fmt.Print(string(out))
-
 	return returnMessage, nil
-
 }
 func check(err error) {
 	if err != nil {
