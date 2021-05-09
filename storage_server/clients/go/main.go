@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure()) //152.94.1.100
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	check(err)
 
 	client := pb.NewStorageClient(conn)

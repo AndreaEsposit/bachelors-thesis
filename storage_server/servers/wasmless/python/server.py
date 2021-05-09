@@ -10,17 +10,15 @@ import storage_pb2_grpc
 import storage_pb2
 
 # gRPC related variables
-# grpc_host = u'[::]'
 grpc_host = u'152.94.162.17'  # bbchain7
 grpc_port = u'50051'
 grpc_address = u'{host}:{port}'.format(host=grpc_host, port=grpc_port)
 
-# create a class to define the server functions, derived
-# from storage_pb2_grpc.StorageServicer
 
 lock = threading.Lock()
 
-
+# create a class to define the server functions, derived
+# from storage_pb2_grpc.StorageServicer
 class StorageServicer(storage_pb2_grpc.StorageServicer):
 
     def Read(self, request, context):
@@ -30,7 +28,8 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
         filepath = str(path) + "/" + filename + ".json"
 
         if os.path.isfile(filepath):
-            lock.acquire()  # take lock
+            # take lock
+            lock.acquire()
             with open(filepath) as f:
                 data = json.load(f)
 
@@ -39,7 +38,9 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
                 "seconds": data["seconds"],
                 "nanos": data["nseconds"]
             }
-            lock.release()  # release lock
+
+            # release lock
+            lock.release()
 
             return storage_pb2.ReadResponse(Value=val, Timestamp=timestamp, Ok=1)
         else:
@@ -65,7 +66,9 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
             "value": val
         }
 
-        lock.acquire()  # take lock
+        # take lock
+        lock.acquire()
+
         # write to JSON pretty
         with open(filepath, "w") as write_file:
             json.dump(dataset, write_file, indent=4)

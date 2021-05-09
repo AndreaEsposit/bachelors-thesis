@@ -18,7 +18,8 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "localhost:50051" // bbchain2=152.94.162.12
+// Use localhost:50051 to run locally
+const IP = "localhost:50051"
 
 func check(err error) {
 	if err != nil {
@@ -105,7 +106,7 @@ func NewStorageServer(funcs map[string]*wasmtime.Func, memory *wasmtime.Memory) 
 	return &StorageServer{
 		funcs:  funcs,
 		memory: memory,
-		port:   IP, //152.94.1.102:50051 (Pitter3)
+		port:   IP,
 	}
 }
 

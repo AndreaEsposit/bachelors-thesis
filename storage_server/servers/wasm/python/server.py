@@ -26,8 +26,6 @@ lock = threading.Lock()
 
 # WasmInstantiate instatiates a Wasm module given a .wasm file location and a list
 # of the functions that need to be exported
-
-
 def WasmInstantiate(functions, wasmLocation, preOpenedDirs={}, stdoutPath="", stdinPath="", stderrPat=""):
     # Wasmtime Embedding
     store = wasmtime.Store()

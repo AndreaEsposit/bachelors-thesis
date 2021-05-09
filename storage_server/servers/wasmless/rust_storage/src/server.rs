@@ -103,7 +103,6 @@ impl Storage for MyStorage {
 
         // acquire Semaphore permit
         let file_handle = self.sem.acquire().await;
-        //let file_handle = self.mu.lock().expect("Mutex is poisoned");
 
         //write to file
         let e = tokio::fs::write(file_path, bdata).await;

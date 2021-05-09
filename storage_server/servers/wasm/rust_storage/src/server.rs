@@ -201,7 +201,6 @@ impl WasmActor {
             } => {
                 let mut buf = BytesMut::with_capacity(500);
                 request.encode(&mut buf).unwrap();
-                //let r: proto::ReadRequest = prost::Message::decode(buf).unwrap();
                 let bytes_vec: Vec<u8> = buf.to_vec();
                 let result = self.call_wasm("read", bytes_vec);
 
@@ -218,7 +217,6 @@ impl WasmActor {
             } => {
                 let mut buf = BytesMut::with_capacity(500);
                 request.encode(&mut buf).unwrap();
-                //let r: proto::ReadRequest = prost::Message::decode(buf).unwrap();
                 let bytes_vec: Vec<u8> = buf.to_vec();
                 let result = self.call_wasm("write", bytes_vec);
                 let buf = &result[..];
@@ -315,6 +313,7 @@ impl WasmHandle {
     pub async fn ready_to_use(&self) -> i32 {
         let (send, recv) = oneshot::channel();
         let msg = ActorRequest::ReadyToUse { respond_to: send };
+
         // Ignore send errors. If this send fails, so does the
         // recv.await below. There's no reason to check for the
         // same failure twice.

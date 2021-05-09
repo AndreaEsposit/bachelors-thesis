@@ -39,10 +39,6 @@ func NewEchoServer() *EchoServer {
 }
 
 func (echo *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*pb.EchoMessage, error) {
-
-	//fmt.Printf("Server recived: %v\n", message.Content)
-
 	newMessage := &pb.EchoMessage{Content: message.Content}
-
 	return newMessage, nil
 }

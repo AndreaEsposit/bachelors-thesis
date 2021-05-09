@@ -21,7 +21,7 @@ namespace DotNetServer
                         options.Listen(ipaddress, 50051, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
 
                         // Run in localhost
-                        //options.ListenLocalhost(50051, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+                        // options.ListenLocalhost(50051, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
                     });
 
                     webBuilder.UseStartup<Startup>();

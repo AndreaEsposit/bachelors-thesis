@@ -120,10 +120,6 @@ func (server *EchoServer) Send(ctx context.Context, message *pb.EchoMessage) (*p
 	_, err = server.funcs["dealloc"].Call(ptr, int32(len(recivedBytes)))
 	_, err = server.funcs["dealloc"].Call(newPtr32, newMessageLen)
 
-	// Print WASM stdout
-	// out, err := ioutil.ReadFile(echo.stdout)
-	// check(err)
-	// fmt.Print(string(out))
 	return returnMessage, nil
 }
 func check(err error) {

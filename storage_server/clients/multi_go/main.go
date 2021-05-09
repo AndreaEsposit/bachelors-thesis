@@ -15,8 +15,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-//TODO: Add a re-connection feature if connection is lost
-
 var wg sync.WaitGroup
 
 // IPs is used to specify the IPs that we will connect to

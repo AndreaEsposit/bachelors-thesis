@@ -15,7 +15,7 @@ import (
 )
 
 // IP is used to choose the IP of the server
-const IP = "152.94.162.17:50051" //152.94.162.17:50051 //bbchain7
+const IP = "152.94.162.17:50051" //IP server for BBchain machine #7
 
 type StorageServer struct {
 	port string
@@ -32,7 +32,7 @@ type Data struct {
 // NewStorageServer initializes an EchoServer
 func NewStorageServer() *StorageServer {
 	return &StorageServer{
-		port: IP, // bbchain21
+		port: IP,
 	}
 }
 
@@ -44,11 +44,10 @@ func (server *StorageServer) Read(ctx context.Context, request *pb.ReadRequest) 
 	var data Data
 
 	server.mu.Lock() // acquire lock
-	//f, err := os.Open(file)
 	content, err := os.ReadFile(filepath)
 
 	var response = pb.ReadResponse{}
-	if err != nil { //os.IsNotExist(err)
+	if err != nil {
 		timestamp := timestamppb.Timestamp{
 			Seconds: 0,
 			Nanos:   0,
@@ -99,6 +98,7 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	check(err)
 
 	server.mu.Lock() // acquire lock
+
 	// write to file
 	file, err := os.Open("./data/" + filename)
 	check(err)
@@ -106,7 +106,6 @@ func (server *StorageServer) Write(ctx context.Context, request *pb.WriteRequest
 	file.Sync()
 	file.Close()
 
-	//result := os.WriteFile("./data/"+file, b, 0644)
 	server.mu.Unlock() // realease lock
 
 	// return response
