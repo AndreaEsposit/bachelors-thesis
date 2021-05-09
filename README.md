@@ -17,6 +17,7 @@ The project is developed using the following technologies:
 * Protocol Buffers
 
 ## Project structure
+The echo_server and storage_server folders have the same folder structure.
 ```
 .
 ├── echo_server             # Echo server application files
